@@ -1,11 +1,6 @@
 const express = require('express');
 const sqlite3 = require('sqlite3').verbose();
 const cors = require('cors');
-const twilio = require('twilio'); // Προσθήκη Twilio
-
-const accountSid = 'ACf85ef31755844de990aa67a6a52a5446'; // Αντικατέστησε με το SID σου
-const authToken = '9e3e4ffcee524ea9090ad4276fa30545';   // Αντικατέστησε με το Token σου
-const client = twilio(accountSid, authToken); // Twilio client
 
 const app = express();
 const port = 5000;
@@ -17,81 +12,6 @@ const db = new sqlite3.Database('./customers.db');
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true })); // Για URL-encoded data
-
-// Αποθηκεύουμε τους συνδρομητές SSE
-let sseClients = [];
-
-// Endpoint για SSE
-app.get('/events', (req, res) => {
-    res.setHeader('Content-Type', 'text/event-stream');
-    res.setHeader('Cache-Control', 'no-cache');
-    res.setHeader('Connection', 'keep-alive');
-
-    // Προσθέτουμε τον client στη λίστα
-    sseClients.push(res);
-
-    // Αφαιρούμε τον client όταν κλείσει η σύνδεση
-    req.on('close', () => {
-        sseClients = sseClients.filter(client => client !== res);
-    });
-});
-
-// Ενημέρωση όλων των συνδρομητών SSE
-const notifyClients = (data) => {
-    sseClients.forEach(client => {
-        client.write(`data: ${JSON.stringify(data)}\n\n`);
-    });
-};
-
-// Endpoint για Twilio XML Response
-app.post('/twiml', (req, res) => {
-    res.type('text/xml'); // Ορίζουμε τον τύπο της απάντησης ως XML
-    res.send(`
-        <Response>
-            <Say>Thank you for calling. Please hold while we process your call.</Say>
-        </Response>
-    `);
-});
-
-// Λίστα ψευδών αριθμών
-const simulatedNumbers = {
-    '306998765432': { 
-        name: 'Jane Smith', 
-        address: 'Thessaloniki, Greece', 
-        email: 'jane@example.com', 
-        other_info: 'VIP customer' 
-    }
-};
-
-// Μεταβλητή για αποθήκευση της τελευταίας κλήσης
-let lastCall = null;
-
-// Ενημέρωση στο `/incoming-call`
-app.post('/incoming-call', (req, res) => {
-    console.log('Incoming call data:', req.body);
-    const callerNumber = req.body.From; // Ο αριθμός που καλεί
-    console.log(`Incoming call from: ${callerNumber}`);
-    const formattedNumber = callerNumber.replace('+30', '');
-
-    // Αποθήκευση της τελευταίας κλήσης
-    lastCall = formattedNumber;
-
-    // Ενημέρωση των συνδρομητών SSE
-    notifyClients({ callerNumber: formattedNumber });
-
-    // Απάντηση στον Twilio (απαιτείται από το Twilio)
-    res.type('text/xml');
-    res.send(`
-        <Response>
-            <Say>Thank you for calling. Please hold while we process your call.</Say>
-        </Response>
-    `);
-});
-
-// Endpoint για λήψη της τελευταίας κλήσης
-app.get('/last-call', (req, res) => {
-    res.json({ callerNumber: lastCall });
-});
 
 // Endpoint για αναζήτηση πελάτη
 app.get('/api/customer', (req, res) => {
@@ -111,19 +31,153 @@ app.get('/api/customer', (req, res) => {
     });
 });
 
-// Νέο Endpoint για προσθήκη πελάτη
+// Νέο Endpoint για προσθήκη ή ενημέρωση πελάτη
 app.post('/api/customer', (req, res) => {
-    const { name, phone_number, address, email, other_info } = req.body;
+    console.log('Received customer data:', req.body); // Debugging log
+    const {
+        first_name,
+        last_name,
+        phone_1,
+        phone_2,
+        phone_3,
+        weight,
+        info,
+        hospital_name,
+        clinic_name,
+        building_name,
+        floor_number,
+        room_number,
+        oxygen_usage,
+        transport_method,
+        transport_methods,
+        transport_methodd,
+        citys,
+        cityd,
+        streets,
+        streetd,
+        numbers,
+        numberd,
+        floors,
+        floord,
+        doorbells,
+        doorbelld,
+        has_elevators,
+        has_elevatord,
+        postal_codes,
+        postal_coded,
+        has_o2s,
+        has_o2d,
+        code
+    } = req.body;
 
-    const query = `INSERT INTO Customers (name, phone_number, address, email, other_info) VALUES (?, ?, ?, ?, ?)`;
+    // Αποθήκευση δεδομένων στον Customer
+    if (first_name || last_name || phone_1 || phone_2 || phone_3 || weight || info) {
+        const insertCustomerQuery = `
+            INSERT INTO Customer (first_name, last_name, phone_1, phone_2, phone_3, weight, info)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+        `;
 
-    db.run(query, [name, phone_number, address, email, other_info], function (err) {
-        if (err) {
-            console.error('Error inserting data:', err.message);
-            return res.status(500).json({ error: 'Failed to insert customer' });
-        }
-        res.status(201).json({ message: 'Customer added successfully', id: this.lastID });
-    });
+        db.run(insertCustomerQuery, [first_name || null, last_name || null, phone_1 || null, phone_2 || null, phone_3 || null, weight || null, info || null], function (err) {
+            if (err) {
+                console.error('Error inserting customer:', err.message);
+            } else {
+                console.log('Customer data added successfully with ID:', this.lastID);
+            }
+        });
+    }
+
+    // Αποθήκευση δεδομένων στο Hospital
+    if (hospital_name || clinic_name || building_name || floor_number || room_number || oxygen_usage || transport_method) {
+        const hospitalQuery = `
+            INSERT INTO Hospital (hospital_name, clinic_name, building_name, floor_number, room_number, oxygen_usage, transport_method)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+        `;
+
+        db.run(hospitalQuery, [
+            hospital_name || null,
+            clinic_name || null,
+            building_name || null,
+            floor_number || null,
+            room_number || null,
+            oxygen_usage ? 1 : 0,
+            transport_method || null
+        ], function (err) {
+            if (err) {
+                console.error('Error inserting hospital data:', err.message);
+            } else {
+                console.log('Hospital data added successfully');
+            }
+        });
+    }
+
+    // Αποθήκευση δεδομένων στο Starting_point
+    if (citys || streets || numbers || floors || doorbells || transport_methods || has_elevators !== undefined || postal_codes || has_o2s !== undefined) {
+        const startingPointQuery = `
+            INSERT INTO Starting_point (citys, streets, numbers, floors, doorbells, transport_methods, has_elevators, postal_codes, has_o2s)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `;
+
+        db.run(startingPointQuery, [
+            citys || null,
+            streets || null,
+            numbers || null,
+            floors || null,
+            doorbells || null,
+            transport_methods || null,
+            has_elevators ? 1 : 0,
+            postal_codes || null,
+            has_o2s ? 1 : 0
+        ], function (err) {
+            if (err) {
+                console.error('Error inserting starting point data:', err.message);
+            } else {
+                console.log('Starting point data added successfully');
+            }
+        });
+    }
+
+    // Αποθήκευση δεδομένων στο Destination
+    if (cityd || streetd || numberd || floord || doorbelld || transport_methodd || has_elevatord !== undefined || postal_coded || has_o2d !== undefined) {
+        const destinationQuery = `
+            INSERT INTO Destination (cityd, streetd, numberd, floord, has_elevatord, doorbelld, transport_methodd, postal_coded, has_o2d)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `;
+
+        db.run(destinationQuery, [
+            cityd || null,
+            streetd || null,
+            numberd || null,
+            floord || null,
+            has_elevatord ? 1 : 0,
+            doorbelld || null,
+            transport_methodd || null,
+            postal_coded || null,
+            has_o2d ? 1 : 0
+        ], function (err) {
+            if (err) {
+                console.error('Error inserting destination data:', err.message);
+            } else {
+                console.log('Destination data added successfully');
+            }
+        });
+    }
+
+    // Αύξηση του αντίστοιχου counter
+    if (code) {
+        const counterField = `"${code}c"`;
+        const updateCounterQuery = `UPDATE Counters SET ${counterField} = ${counterField} + 1`;
+
+        db.run(updateCounterQuery, function (err) {
+            if (err) {
+                console.error(`Error updating counter ${counterField}:`, err.message);
+            } else {
+                console.log(`Counter ${counterField} updated successfully`);
+            }
+        });
+    }
+
+    // Απάντηση στον πελάτη
+    res.status(200).json({ message: 'Operation completed successfully' });
 });
 
 // Νέο Endpoint για ενημέρωση πελάτη

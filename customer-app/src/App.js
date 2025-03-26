@@ -36,7 +36,7 @@ function App() {
         try {
             setIsLoading(true);
             
-            const response = await axios.get(`https://c6d4-37-6-156-153.ngrok-free.app/api/customer?phone_number=${phoneNumber}`);
+            const response = await axios.get(`http://localhost:5000/api/customer?phone_number=${phoneNumber}`);
             console.log('API Response:', response.data);
             setCustomer(response.data);
             setError('');
@@ -72,12 +72,12 @@ function App() {
     // Συνάρτηση για ανάκτηση της τελευταίας κλήσης
     const fetchLastCall = async () => {
         try {
-            const response = await axios.get('https://c6d4-37-6-156-153.ngrok-free.app/last-call');
+            const response = await axios.get('http://localhost:5000/last-call');
             const callerNumber = response.data.callerNumber;
 
             if (callerNumber) {
                 const customerResponse = await axios.get(
-                    `https://c6d4-37-6-156-153.ngrok-free.app/api/customer?phone_number=${callerNumber}`
+                    `http://localhost:5000/api/customer?phone_number=${callerNumber}`
                 );
                 setCustomer(customerResponse.data);
                 setError('');
