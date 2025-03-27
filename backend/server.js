@@ -15,9 +15,9 @@ app.use(express.urlencoded({ extended: true })); // Για URL-encoded data
 
 // Endpoint για αναζήτηση πελάτη
 app.get('/api/customer', (req, res) => {
-    console.log('Received request for phone number:', req.query.phone_number);
-    const phoneNumber = req.query.phone_number;
-    const query = `SELECT * FROM Customer WHERE phone_number = ?`;
+    console.log('Received request for phone number:', req.query.phone_1);
+    const phoneNumber = req.query.phone_1;
+    const query = `SELECT * FROM Customer WHERE phone_1 = ?`;
 
     db.get(query, [phoneNumber], (err, row) => {
         if (err) {

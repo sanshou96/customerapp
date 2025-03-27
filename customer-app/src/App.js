@@ -36,17 +36,45 @@ function App() {
 
     const addCustomer = async (customerData, callback) => {
         try {
+            // Στείλε τα δεδομένα του πελάτη στο backend
             const response = await axios.post('http://localhost:5000/api/customer', customerData);
     
+            // Ενημέρωσε το state counters με τα νέα δεδομένα που επιστρέφονται από το backend
             if (response.data.counters) {
-               
-                callback(response.data); // Επιστροφή των δεδομένων στο callback
-            } else {
-                callback(null);
+                console.log('Backend counters:', response.data.counters); // Προσθήκη log για debugging
+                setCounters(response.data.counters);
+            }
+    
+            // Ενημέρωσε το state ή εμφάνισε μήνυμα επιτυχίας
+            alert('Customer added successfully!');
+            setNewCustomer({
+                first_name: '',
+                last_name: '',
+                phone_1: '',
+                phone_2: '',
+                phone_3: '',
+                weight: '',
+                info: '',
+                hospital_name: '',
+                clinic_name: '',
+                building_name: '',
+                floor_number: '',
+                room_number: '',
+                oxygen_usage: '',
+                transport_method: '',
+                code: ''
+            });
+    
+            // Επιστροφή των δεδομένων στο callback (αν υπάρχει)
+            if (callback) {
+                callback(response.data);
             }
         } catch (err) {
             console.error('Error adding customer:', err);
-            callback(null);
+            alert('Failed to add customer');
+            if (callback) {
+                callback(null);
+            }
         }
     };
 
