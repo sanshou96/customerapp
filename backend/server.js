@@ -17,7 +17,7 @@ app.use(express.urlencoded({ extended: true })); // Για URL-encoded data
 app.get('/api/customer', (req, res) => {
     console.log('Received request for phone number:', req.query.phone_number);
     const phoneNumber = req.query.phone_number;
-    const query = `SELECT * FROM Customers WHERE phone_number = ?`;
+    const query = `SELECT * FROM Customer WHERE phone_number = ?`;
 
     db.get(query, [phoneNumber], (err, row) => {
         if (err) {
@@ -162,6 +162,7 @@ app.post('/api/customer', (req, res) => {
         });
     }
 
+
     // Αύξηση του αντίστοιχου counter
     if (code) {
         const counterField = `"${code}c"`;
@@ -170,28 +171,41 @@ app.post('/api/customer', (req, res) => {
         db.run(updateCounterQuery, function (err) {
             if (err) {
                 console.error(`Error updating counter ${counterField}:`, err.message);
-            } else {
-                console.log(`Counter ${counterField} updated successfully`);
+                return res.status(500).json({ error: 'Failed to update counter' });
             }
+            console.log(`Counter ${counterField} updated successfully`);
+
+            // Επιστροφή των ενημερωμένων counters
+            const fetchCountersQuery = `SELECT "166c", "153c", "011c", "1600c" FROM Counters`;
+            db.get(fetchCountersQuery, (err, row) => {
+                if (err) {
+                    console.error('Error fetching counters:', err.message);
+                    return res.status(500).json({ error: 'Failed to fetch counters' });
+                }
+                return res.status(200).json({ message: 'Operation completed successfully', counters: row });
+            });
         });
+        return; // Σταματάμε την εκτέλεση εδώ για να μην σταλεί δεύτερη απάντηση
     }
 
-    // Απάντηση στον πελάτη
+    // Απάντηση στον πελάτη αν δεν υπάρχει κωδικός
     res.status(200).json({ message: 'Operation completed successfully' });
 });
+
+
 
 // Νέο Endpoint για ενημέρωση πελάτη
 app.put('/api/customer/:id', (req, res) => {
     const { id } = req.params;
-    const { name, phone_number, address, email, other_info } = req.body;
+    const { first_name,last_name, phone_1, phone_2, phone_3, info,weight } = req.body;
 
     const query = `
-        UPDATE Customers
-        SET name = ?, phone_number = ?, address = ?, email = ?, other_info = ?
+        UPDATE Customer
+        SET first_name = ?,last_name = ?, phone_1 = ?, phone_2 = ?, phone_3 = ?, info = ?, weight = ?
         WHERE id = ?
     `;
 
-    db.run(query, [name, phone_number, address, email, other_info, id], function (err) {
+    db.run(query, [first_name, last_name, phone_1, phone_2, phone_3,info, weight, id], function (err) {
         if (err) {
             console.error('Error updating customer:', err.message);
             return res.status(500).json({ error: 'Failed to update customer' });
@@ -200,24 +214,17 @@ app.put('/api/customer/:id', (req, res) => {
     });
 });
 
-// Νέο Endpoint για πραγματοποίηση κλήσης μέσω Twilio
-app.post('/make-call', (req, res) => {
-    const { to } = req.body; // Ο αριθμός που θα καλέσεις
+// Endpoint για ανάκτηση των counters
+app.get('/api/counters', (req, res) => {
+    const query = `SELECT "166c", "153c", "011c", "1600c" FROM Counters`;
 
-    client.calls
-        .create({
-            url: 'http://demo.twilio.com/docs/voice.xml', // URL για το TwiML
-            to: '+19705140186',
-            from: '+306940199334' // Αντικατάστησε με τον αριθμό Twilio σου
-        })
-        .then(call => {
-            console.log(`Call initiated with SID: ${call.sid}`);
-            res.status(200).json({ message: 'Call initiated', sid: call.sid });
-        })
-        .catch(err => {
-            console.error('Error initiating call:', err);
-            res.status(500).json({ error: 'Failed to initiate call' });
-        });
+    db.get(query, (err, row) => {
+        if (err) {
+            console.error('Error fetching counters:', err.message);
+            return res.status(500).json({ error: 'Failed to fetch counters' });
+        }
+        res.json(row);
+    });
 });
 
 // Εκκίνηση του server

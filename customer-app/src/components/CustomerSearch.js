@@ -1,5 +1,5 @@
 import React from 'react';
-import axios from 'axios';
+
 function CustomerSearch({ phoneNumber, setPhoneNumber, handleSearch }) {
     return (
         <form onSubmit={handleSearch} style={{ marginBottom: '20px' }}>

@@ -7,10 +7,12 @@ function CustomerForm({ newCustomer, setNewCustomer, transferType, setTransferTy
     const fetchCounters = () => {
         fetch('http://localhost:5000/api/counters')
             .then((response) => response.json())
-            .then((data) => setCounters(data))
+            .then((data) => {
+                
+                setCounters(data); // Ενημέρωση του state με τους νέους counters
+            })
             .catch((error) => console.error('Error fetching counters:', error));
     };
-
     // Ανάκτηση των counters κατά την αρχική φόρτωση
     useEffect(() => {
         fetchCounters();
@@ -18,12 +20,13 @@ function CustomerForm({ newCustomer, setNewCustomer, transferType, setTransferTy
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        console.log('Submitting customer data:', newCustomer); // Debugging log
+    
         addCustomer(newCustomer, (response) => {
-            if (response.counters) {
+            if (response && response.counters) {
+            
                 setCounters(response.counters); // Ενημέρωση του state με τους νέους counters
-                console.log('Updated counters state:', response.counters); // Debugging log
             }
+            fetchCounters(); // Επαναφορά των counters μετά την αποθήκευση
         });
     };
 
@@ -35,8 +38,8 @@ function CustomerForm({ newCustomer, setNewCustomer, transferType, setTransferTy
             {/* Βασικά πεδία */}
             <h2>Customer Management</h2>
 
-            {/* Option Selector */}
-            <div style={{ width: '100%', marginTop: '20px' }}>
+                  {/* Option Selector */}
+                  <div style={{ width: '100%', marginTop: '20px' }}>
                 <label style={{ fontWeight: 'bold', marginBottom: '10px', display: 'block' }}>Επιλογή Πηγής</label>
                 <select
                     value={newCustomer.code || ''}
@@ -51,17 +54,16 @@ function CustomerForm({ newCustomer, setNewCustomer, transferType, setTransferTy
                 </select>
             </div>
 
-            {/* Εμφάνιση των Counters */}
+            {/* Στατιστικά Counters */}
             <div style={{ width: '100%', marginTop: '10px' }}>
-                <h3>Στατιστικά Counters</h3>
-                <ul>
-                    <li>166: {counters["166c"] || 0}</li>
-                    <li>153: {counters["153c"] || 0}</li>
-                    <li>011: {counters["011c"] || 0}</li>
-                    <li>1600: {counters["1600c"] || 0}</li>
-                </ul>
-            </div>
-
+    <h3>Στατιστικά Counters</h3>
+    <ul>
+        <li>166: {counters["166c"] || 0}</li>
+        <li>153: {counters["153c"] || 0}</li>
+        <li>011: {counters["011c"] || 0}</li>
+        <li>1600: {counters["1600c"] || 0}</li>
+    </ul>
+</div>
             {/* Radio Buttons */}
             <div style={{ width: '100%' }}>
                 <h2>Στοιχεία παραλαβής</h2>
