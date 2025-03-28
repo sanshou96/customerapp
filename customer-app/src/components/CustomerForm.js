@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 
 function CustomerForm({ newCustomer, setNewCustomer, transferType, setTransferType, addCustomer }) {
     const [counters, setCounters] = useState({});
-    
+    const [calculatedCost, setCalculatedCost] = useState(50); // Αρχική τιμή κόστους
     // Συνάρτηση για την ανάκτηση των counters από το backend
     const fetchCounters = () => {
         fetch('http://localhost:5000/api/counters')
@@ -17,15 +17,46 @@ function CustomerForm({ newCustomer, setNewCustomer, transferType, setTransferTy
     useEffect(() => {
         fetchCounters();
     }, []);
+    useEffect(() => {
+        const baseCost = 50;
+        const floorCost = (5*newCustomer.floors || 0) * (newCustomer.has_elevators ? 0 : 1);
+        const floordCost = (5*newCustomer.floord || 0) * (newCustomer.has_elevatord ? 0 : 1);
+        const totalCost = baseCost + floorCost + floordCost;
+        setCalculatedCost(totalCost); // Ενημέρωση του δυναμικού κόστους
+    }, [newCustomer.floors, newCustomer.floord, newCustomer.has_elevators, newCustomer.has_elevatord]);
 
     const handleSubmit = (e) => {
         e.preventDefault();
     
-        addCustomer(newCustomer, (response) => {
+        // Καθορισμός του is_starting_point με βάση τις επιλογές
+        const isStartingPoint = transferType === 'Από Νοσοκομείο για Σπίτι';
+        const updatedCustomer = { ...newCustomer, is_starting_point: isStartingPoint };
+    
+    
+        addCustomer(updatedCustomer, (response) => {
             if (response && response.counters) {
-            
                 setCounters(response.counters); // Ενημέρωση του state με τους νέους counters
             }
+    
+            // Αποθήκευση του ιστορικού
+            fetch('http://localhost:5000/api/customer-history', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    customer_id: response.customer_id, // ID του πελάτη
+                    hospital_id: response.hospital_id, // ID του νοσοκομείου
+                    destination_id: response.destination_id, // ID του προορισμού
+                    starting_point_id: response.starting_point_id, // ID της αφετηρίας
+                    cost: calculatedCost, // Υπολογισμένο κόστος
+                    incident_type: updatedCustomer.incident_type, // Είδος συμβάντος
+                }),
+            })
+                .then((res) => res.json())
+                .then((data) => {
+                    console.log('Ιστορικό αποθηκεύτηκε:', data);
+                })
+                .catch((error) => console.error('Σφάλμα κατά την αποθήκευση του ιστορικού:', error));
+    
             fetchCounters(); // Επαναφορά των counters μετά την αποθήκευση
         });
     };
@@ -37,7 +68,25 @@ function CustomerForm({ newCustomer, setNewCustomer, transferType, setTransferTy
         >
             {/* Βασικά πεδία */}
             <h2>Customer Management</h2>
-
+       {/* Δυναμική Εμφάνιση Κόστους */}
+       <div style={{ display: 'flex', flexDirection: 'column', width: '200px' }}>
+                <label>Υπολογισμένο Κόστος</label>
+                <input
+                    type="text"
+                    value={`${calculatedCost} €`}
+                    readOnly
+                    style={{ padding: '10px', backgroundColor: '#f0f0f0', border: '1px solid #ccc' }}
+                />
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', width: '200px' }}>
+                <label>Υπολογισμένο Κόστος + ΦΠΑ</label>
+                <input
+                    type="text"
+                    value={`${calculatedCost + (calculatedCost*0.24) } €`}
+                    readOnly
+                    style={{ padding: '10px', backgroundColor: '#f0f0f0', border: '1px solid #ccc' }}
+                />
+            </div>
                   {/* Option Selector */}
                   <div style={{ width: '100%', marginTop: '20px' }}>
                 <label style={{ fontWeight: 'bold', marginBottom: '10px', display: 'block' }}>Επιλογή Πηγής</label>
@@ -91,7 +140,7 @@ function CustomerForm({ newCustomer, setNewCustomer, transferType, setTransferTy
                     </label>
                 </div>
             </div>
-
+           
             {/* Επιπλέον Φόρμα για "Από Νοσοκομείο για Σπίτι" */}
             {transferType === 'Από Νοσοκομείο για Σπίτι' && (
                 <div style={{ width: '100%', marginTop: '20px' }}>
@@ -131,16 +180,28 @@ function CustomerForm({ newCustomer, setNewCustomer, transferType, setTransferTy
                                 style={{ padding: '10px' }}
                             />
                         </div>
+                       
                         <div style={{ display: 'flex', flexDirection: 'column', width: '200px' }}>
-                            <label>Όροφος</label>
-                            <input
-                                type="text"
-                                placeholder="Όροφος"
-                                value={newCustomer.floor_number || ''}
-                                onChange={(e) => setNewCustomer({ ...newCustomer, floor_number: e.target.value })}
-                                style={{ padding: '10px' }}
-                            />
-                        </div>
+    <label>Όροφος</label>
+    <select
+        value={newCustomer.floor_number || ''}
+        onChange={(e) => setNewCustomer({ ...newCustomer, floor_number: e.target.value })}
+        style={{ padding: '10px' }}
+    >
+        <option value="">Επιλέξτε Όροφο</option>
+        <option value="0">0</option>
+        <option value="1">1</option>
+        <option value="2">2</option>
+        <option value="3">3</option>
+        <option value="4">4</option>
+        <option value="5">5</option>
+        <option value="6">6</option>
+        <option value="7">7</option>
+        <option value="8">8</option>
+        <option value="9">9</option>
+        <option value="10">10</option>
+    </select>
+</div>
                         <div style={{ display: 'flex', flexDirection: 'column', width: '200px' }}>
                             <label>Δωμάτιο</label>
                             <input
@@ -225,16 +286,28 @@ function CustomerForm({ newCustomer, setNewCustomer, transferType, setTransferTy
                                 style={{ padding: '10px' }}
                             />
                         </div>
+                      
                         <div style={{ display: 'flex', flexDirection: 'column', width: '200px' }}>
-                            <label>Όροφος</label>
-                            <input
-                                type="text"
-                                placeholder="Όροφος"
-                                value={newCustomer.floors || ''}
-                                onChange={(e) => setNewCustomer({ ...newCustomer, floors: e.target.value })}
-                                style={{ padding: '10px' }}
-                            />
-                        </div>
+    <label>Όροφος</label>
+    <select
+        value={newCustomer.floors || ''}
+        onChange={(e) => setNewCustomer({ ...newCustomer, floors: parseInt(e.target.value, 10)})}
+        style={{ padding: '10px' }}
+    >
+        <option value="">Επιλέξτε Όροφο</option>
+        <option value="0">0</option>
+        <option value="1">1</option>
+        <option value="2">2</option>
+        <option value="3">3</option>
+        <option value="4">4</option>
+        <option value="5">5</option>
+        <option value="6">6</option>
+        <option value="7">7</option>
+        <option value="8">8</option>
+        <option value="9">9</option>
+        <option value="10">10</option>
+    </select>
+</div>
                         <div style={{ display: 'flex', flexDirection: 'column', width: '200px' }}>
                             <label>Κουδούνι</label>
                             <input
@@ -359,6 +432,20 @@ function CustomerForm({ newCustomer, setNewCustomer, transferType, setTransferTy
                 />
             </div>
         </div>
+        {/* Πεδίο για Είδος Συμβάντος/Αιτιολογία */}
+<div style={{ display: 'flex', flexDirection: 'column', width: '200px', marginTop: '20px' }}>
+    <label>Είδος Συμβάντος/Αιτιολογία</label>
+    <select
+        value={newCustomer.incident_type || ''}
+        onChange={(e) => setNewCustomer({ ...newCustomer, incident_type: e.target.value })}
+        style={{ padding: '10px' }}
+    >
+        <option value="">Επιλέξτε</option>
+        <option value="Επείγον">Επείγον</option>
+        <option value="Επανεξέταση">Επανεξέταση</option>
+        <option value="Χημειοθεραπεία">Χημειοθεραπεία</option>
+    </select>
+</div>
             <div style={{ width: '100%', marginTop: '20px' }}>
                 <h3>Επιλογή Τοποθεσίας</h3>
                 <div style={{ display: 'flex', gap: '20px' }}>
@@ -424,16 +511,28 @@ function CustomerForm({ newCustomer, setNewCustomer, transferType, setTransferTy
                                 style={{ padding: '10px' }}
                             />
                         </div>
+                   
                         <div style={{ display: 'flex', flexDirection: 'column', width: '200px' }}>
-                            <label>Όροφος</label>
-                            <input
-                                type="text"
-                                placeholder="Όροφος"
-                                value={newCustomer.floor_number || ''}
-                                onChange={(e) => setNewCustomer({ ...newCustomer, floor_number: e.target.value })}
-                                style={{ padding: '10px' }}
-                            />
-                        </div>
+    <label>Όροφος</label>
+    <select
+        value={newCustomer.floor_number || ''}
+        onChange={(e) => setNewCustomer({ ...newCustomer, floor_number: e.target.value })}
+        style={{ padding: '10px' }}
+    >
+        <option value="">Επιλέξτε Όροφο</option>
+        <option value="0">0</option>
+        <option value="1">1</option>
+        <option value="2">2</option>
+        <option value="3">3</option>
+        <option value="4">4</option>
+        <option value="5">5</option>
+        <option value="6">6</option>
+        <option value="7">7</option>
+        <option value="8">8</option>
+        <option value="9">9</option>
+        <option value="10">10</option>
+    </select>
+</div>
                         <div style={{ display: 'flex', flexDirection: 'column', width: '200px' }}>
                             <label>Δωμάτιο</label>
                             <input
@@ -516,16 +615,28 @@ function CustomerForm({ newCustomer, setNewCustomer, transferType, setTransferTy
                                 style={{ padding: '10px' }}
                             />
                         </div>
+                       
                         <div style={{ display: 'flex', flexDirection: 'column', width: '200px' }}>
-                            <label>Όροφος</label>
-                            <input
-                                type="text"
-                                placeholder="Όροφος"
-                                value={newCustomer.floord || ''}
-                                onChange={(e) => setNewCustomer({ ...newCustomer, floord: e.target.value })}
-                                style={{ padding: '10px' }}
-                            />
-                        </div>
+    <label>Όροφος</label>
+    <select
+        value={newCustomer.floord || ''}
+        onChange={(e) => setNewCustomer({ ...newCustomer, floord: e.target.value })}
+        style={{ padding: '10px' }}
+    >
+        <option value="">Επιλέξτε Όροφο</option>
+        <option value="0">0</option>
+        <option value="1">1</option>
+        <option value="2">2</option>
+        <option value="3">3</option>
+        <option value="4">4</option>
+        <option value="5">5</option>
+        <option value="6">6</option>
+        <option value="7">7</option>
+        <option value="8">8</option>
+        <option value="9">9</option>
+        <option value="10">10</option>
+    </select>
+</div>
                         <div style={{ display: 'flex', flexDirection: 'column', width: '200px' }}>
                             <label>Κουδούνι</label>
                             <input

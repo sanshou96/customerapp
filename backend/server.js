@@ -67,32 +67,58 @@ app.post('/api/customer', (req, res) => {
         postal_coded,
         has_o2s,
         has_o2d,
-        code
+        code,
+        is_starting_point,
+        incident_type
     } = req.body;
 
-    // Αποθήκευση δεδομένων στον Customer
-    if (first_name || last_name || phone_1 || phone_2 || phone_3 || weight || info) {
-        const insertCustomerQuery = `
-            INSERT INTO Customer (first_name, last_name, phone_1, phone_2, phone_3, weight, info)
-            VALUES (?, ?, ?, ?, ?, ?, ?)
-        `;
+    let customerId, hospitalId, startingPointId, destinationId;
 
-        db.run(insertCustomerQuery, [first_name || null, last_name || null, phone_1 || null, phone_2 || null, phone_3 || null, weight || null, info || null], function (err) {
-            if (err) {
-                console.error('Error inserting customer:', err.message);
-            } else {
-                console.log('Customer data added successfully with ID:', this.lastID);
-            }
-        });
-    }
+    // Check if customer exists or insert new customer
+    const checkCustomerQuery = `SELECT id FROM Customer WHERE first_name = ? AND last_name = ?`;
+    db.get(checkCustomerQuery, [first_name, last_name], (err, row) => {
+        if (err) {
+            console.error('Error checking customer:', err.message);
+            return res.status(500).json({ error: 'Failed to check customer' });
+        }
 
-    // Αποθήκευση δεδομένων στο Hospital
-    if (hospital_name || clinic_name || building_name || floor_number || room_number || oxygen_usage || transport_method) {
+        if (row) {
+            customerId = row.id; // Save customer ID
+            const updateCustomerQuery = `
+                UPDATE Customer
+                SET phone_1 = ?, phone_2 = ?, phone_3 = ?, weight = ?, info = ?
+                WHERE id = ?
+            `;
+            db.run(updateCustomerQuery, [phone_1, phone_2, phone_3, weight, info, customerId], function (err) {
+                if (err) {
+                    console.error('Error updating customer:', err.message);
+                    return res.status(500).json({ error: 'Failed to update customer' });
+                }
+                customerId = this.lastID; // Save customer ID
+                console.log('Customer updated successfully');
+            });
+        } else {
+            const insertCustomerQuery = `
+                INSERT INTO Customer (first_name, last_name, phone_1, phone_2, phone_3, weight, info)
+                VALUES (?, ?, ?, ?, ?, ?, ?)
+            `;
+            db.run(insertCustomerQuery, [first_name || null, last_name || null, phone_1 || null, phone_2 || null, phone_3 || null, weight || null, info || null], function (err) {
+                if (err) {
+                    console.error('Error inserting customer:', err.message);
+                    return res.status(500).json({ error: 'Failed to insert customer' });
+                }
+                customerId = this.lastID; // Save customer ID
+                console.log('Customer data added successfully with ID:', customerId);
+            });
+        }
+    });
+
+    // Insert hospital data
+    if (hospital_name || clinic_name || building_name || floor_number || room_number || oxygen_usage || transport_method || is_starting_point) {
         const hospitalQuery = `
-            INSERT INTO Hospital (hospital_name, clinic_name, building_name, floor_number, room_number, oxygen_usage, transport_method)
-            VALUES (?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO Hospital (hospital_name, clinic_name, building_name, floor_number, room_number, oxygen_usage, transport_method, is_starting_point)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
         `;
-
         db.run(hospitalQuery, [
             hospital_name || null,
             clinic_name || null,
@@ -100,23 +126,24 @@ app.post('/api/customer', (req, res) => {
             floor_number || null,
             room_number || null,
             oxygen_usage ? 1 : 0,
-            transport_method || null
+            transport_method || null,
+            is_starting_point ? 1 : 0
         ], function (err) {
             if (err) {
                 console.error('Error inserting hospital data:', err.message);
             } else {
-                console.log('Hospital data added successfully');
+                hospitalId = this.lastID; // Save hospital ID
+                console.log('Hospital data added successfully with ID:', hospitalId);
             }
         });
     }
 
-    // Αποθήκευση δεδομένων στο Starting_point
+    // Insert starting point data
     if (citys || streets || numbers || floors || doorbells || transport_methods || has_elevators !== undefined || postal_codes || has_o2s !== undefined) {
         const startingPointQuery = `
             INSERT INTO Starting_point (citys, streets, numbers, floors, doorbells, transport_methods, has_elevators, postal_codes, has_o2s)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
         `;
-
         db.run(startingPointQuery, [
             citys || null,
             streets || null,
@@ -131,18 +158,18 @@ app.post('/api/customer', (req, res) => {
             if (err) {
                 console.error('Error inserting starting point data:', err.message);
             } else {
-                console.log('Starting point data added successfully');
+                startingPointId = this.lastID; // Save starting point ID
+                console.log('Starting point data added successfully with ID:', startingPointId);
             }
         });
     }
 
-    // Αποθήκευση δεδομένων στο Destination
+    // Insert destination data
     if (cityd || streetd || numberd || floord || doorbelld || transport_methodd || has_elevatord !== undefined || postal_coded || has_o2d !== undefined) {
         const destinationQuery = `
             INSERT INTO Destination (cityd, streetd, numberd, floord, has_elevatord, doorbelld, transport_methodd, postal_coded, has_o2d)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
         `;
-
         db.run(destinationQuery, [
             cityd || null,
             streetd || null,
@@ -157,14 +184,12 @@ app.post('/api/customer', (req, res) => {
             if (err) {
                 console.error('Error inserting destination data:', err.message);
             } else {
-                console.log('Destination data added successfully');
+                destinationId = this.lastID; // Save destination ID
+                console.log('Destination data added successfully with ID:', destinationId);
             }
         });
     }
-
-
-    // Αύξηση του αντίστοιχου counter
-    if (code) {
+ if (code) {
         const counterField = `"${code}c"`;
         const updateCounterQuery = `UPDATE Counters SET ${counterField} = ${counterField} + 1`;
 
@@ -187,12 +212,35 @@ app.post('/api/customer', (req, res) => {
         });
         return; // Σταματάμε την εκτέλεση εδώ για να μην σταλεί δεύτερη απάντηση
     }
+    // Endpoint για αποθήκευση ιστορικού πελάτη
+app.post('/api/customer-history', (req, res) => {
+    const { customer_id, hospital_id, destination_id, starting_point_id, cost, incident_type } = req.body;
 
-    // Απάντηση στον πελάτη αν δεν υπάρχει κωδικός
-    res.status(200).json({ message: 'Operation completed successfully' });
+    const insertHistoryQuery = `
+        INSERT INTO CustomerHistory (customer_id, hospital_id, destination_id, starting_point_id, cost, incident_type)
+        VALUES (?, ?, ?, ?, ?, ?)
+    `;
+
+    db.run(insertHistoryQuery, [customer_id, hospital_id, destination_id, starting_point_id, cost, incident_type], function (err) {
+        if (err) {
+            console.error('Error inserting customer history:', err.message);
+            return res.status(500).json({ error: 'Failed to insert customer history' });
+        }
+        console.log('Customer history added successfully');
+        res.status(200).json({ message: 'Customer history added successfully', history_id: this.lastID });
+    });
 });
-
-
+    // Respond with all IDs after ensuring all queries are complete
+    setTimeout(() => {
+        res.status(200).json({
+            message: 'Data saved successfully',
+            customer_id: customerId,
+            hospital_id: hospitalId,
+            starting_point_id: startingPointId,
+            destination_id: destinationId
+        });
+    }, 500); // Delay to ensure all async operations are complete
+});
 
 // Νέο Endpoint για ενημέρωση πελάτη
 app.put('/api/customer/:id', (req, res) => {
@@ -226,6 +274,8 @@ app.get('/api/counters', (req, res) => {
         res.json(row);
     });
 });
+
+
 
 // Εκκίνηση του server
 app.listen(port, () => {
