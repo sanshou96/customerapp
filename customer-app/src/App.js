@@ -24,16 +24,6 @@ function App() {
     const [transferType, setTransferType] = useState('');
     const [counters, setCounters] = useState({});
 
-    // Συνάρτηση για την ανάκτηση των counters
-    const fetchCounters = async () => {
-        try {
-            const response = await axios.get('http://localhost:5000/api/counters');
-            setCounters(response.data);
-        } catch (err) {
-            console.error('Error fetching counters:', err);
-        }
-    };
-
     const addCustomer = async (customerData, callback) => {
         try {
             // Στείλε τα δεδομένα του πελάτη στο backend
@@ -138,8 +128,7 @@ function App() {
                 setNewCustomer={setNewCustomer}
                 transferType={transferType}
                 setTransferType={setTransferType}
-                addCustomer={addCustomer}
-                fetchCounters={fetchCounters} // Πέρασμα της συνάρτησης στο CustomerForm
+                addCustomer={addCustomer}              
                 counters={counters} // Πέρασμα των counters στο CustomerForm
             />
             <CustomerSearch

@@ -3,6 +3,9 @@ import React, { useState, useEffect } from 'react';
 function CustomerForm({ newCustomer, setNewCustomer, transferType, setTransferType, addCustomer }) {
     const [counters, setCounters] = useState({});
     const [calculatedCost, setCalculatedCost] = useState(50); // Αρχική τιμή κόστους
+    const [savedCustomer, setSavedCustomer] = useState(null); // Νέο state για αποθηκευμένα δεδομένα πελάτη
+    const [customerHistory, setCustomerHistory] = useState([]); // State για το ιστορικό του πελάτη
+
     // Συνάρτηση για την ανάκτηση των counters από το backend
     const fetchCounters = () => {
         fetch('http://localhost:5000/api/counters')
@@ -13,6 +16,14 @@ function CustomerForm({ newCustomer, setNewCustomer, transferType, setTransferTy
             })
             .catch((error) => console.error('Error fetching counters:', error));
     };
+    const fetchCustomerHistory = (customerId) => {
+        fetch(`http://localhost:5000/api/customer-history/${customerId}`)
+            .then((response) => response.json())
+            .then((data) => {
+                setCustomerHistory(data); // Ενημέρωση του state με το ιστορικό του πελάτη
+            })
+            .catch((error) => console.error('Error fetching customer history:', error));
+    };
     // Ανάκτηση των counters κατά την αρχική φόρτωση
     useEffect(() => {
         fetchCounters();
@@ -22,6 +33,7 @@ function CustomerForm({ newCustomer, setNewCustomer, transferType, setTransferTy
         const floorCost = (5*newCustomer.floors || 0) * (newCustomer.has_elevators ? 0 : 1);
         const floordCost = (5*newCustomer.floord || 0) * (newCustomer.has_elevatord ? 0 : 1);
         const totalCost = baseCost + floorCost + floordCost;
+      
         setCalculatedCost(totalCost); // Ενημέρωση του δυναμικού κόστους
     }, [newCustomer.floors, newCustomer.floord, newCustomer.has_elevators, newCustomer.has_elevatord]);
 
@@ -37,32 +49,18 @@ function CustomerForm({ newCustomer, setNewCustomer, transferType, setTransferTy
             if (response && response.counters) {
                 setCounters(response.counters); // Ενημέρωση του state με τους νέους counters
             }
-    
-            // Αποθήκευση του ιστορικού
-            fetch('http://localhost:5000/api/customer-history', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    customer_id: response.customer_id, // ID του πελάτη
-                    hospital_id: response.hospital_id, // ID του νοσοκομείου
-                    destination_id: response.destination_id, // ID του προορισμού
-                    starting_point_id: response.starting_point_id, // ID της αφετηρίας
-                    cost: calculatedCost, // Υπολογισμένο κόστος
-                    incident_type: updatedCustomer.incident_type, // Είδος συμβάντος
-                }),
-            })
-                .then((res) => res.json())
-                .then((data) => {
-                    console.log('Ιστορικό αποθηκεύτηκε:', data);
-                })
-                .catch((error) => console.error('Σφάλμα κατά την αποθήκευση του ιστορικού:', error));
-    
+            setSavedCustomer(updatedCustomer);
+            if (updatedCustomer.id) {
+                fetchCustomerHistory(updatedCustomer.id);
+            }
             fetchCounters(); // Επαναφορά των counters μετά την αποθήκευση
         });
     };
+   
 
     return (
-        <form
+        <div>
+            <form
             onSubmit={handleSubmit}
             style={{ marginBottom: '20px', display: 'flex', flexWrap: 'wrap', gap: '20px' }}
         >
@@ -291,7 +289,7 @@ function CustomerForm({ newCustomer, setNewCustomer, transferType, setTransferTy
     <label>Όροφος</label>
     <select
         value={newCustomer.floors || ''}
-        onChange={(e) => setNewCustomer({ ...newCustomer, floors: parseInt(e.target.value, 10)})}
+        onChange={(e) => setNewCustomer({ ...newCustomer, floors: parseInt(e.target.value, 10) || null})}
         style={{ padding: '10px' }}
     >
         <option value="">Επιλέξτε Όροφο</option>
@@ -331,18 +329,17 @@ function CustomerForm({ newCustomer, setNewCustomer, transferType, setTransferTy
                         <div style={{ display: 'flex', flexDirection: 'column', width: '200px' }}>
                             <label>Ασανσέρ</label>
                             <select
-                                value={newCustomer.has_elevators === true ? 'Ναι' : newCustomer.has_elevator === false ? 'Όχι' : ''}
-                                onChange={(e) => {
-                                    const value = e.target.value === 'Ναι' ? true : e.target.value === 'Όχι' ? false : null;
-                                    
-                                    setNewCustomer({ ...newCustomer, has_elevators: value });
-                                }}
-                                style={{ padding: '10px' }}
-                            >
-                                <option value="">Επιλέξτε</option>
-                                <option value="Ναι">Ναι</option>
-                                <option value="Όχι">Όχι</option>
-                            </select>
+    value={newCustomer.has_elevators === true ? 'Ναι' : newCustomer.has_elevators === false ? 'Όχι' : ''}
+    onChange={(e) => {
+        const value = e.target.value === 'Ναι' ? true : e.target.value === 'Όχι' ? false : null;
+        setNewCustomer({ ...newCustomer, has_elevators: value });
+    }}
+    style={{ padding: '10px' }}
+>
+    <option value="">Επιλέξτε</option>
+    <option value="Ναι">Ναι</option>
+    <option value="Όχι">Όχι</option>
+</select>
                         </div>
                    
                         <div style={{ display: 'flex', flexDirection: 'column', width: '200px' }}>
@@ -620,7 +617,7 @@ function CustomerForm({ newCustomer, setNewCustomer, transferType, setTransferTy
     <label>Όροφος</label>
     <select
         value={newCustomer.floord || ''}
-        onChange={(e) => setNewCustomer({ ...newCustomer, floord: e.target.value })}
+        onChange={(e) => setNewCustomer({ ...newCustomer, floord: parseInt(e.target.value, 10) || null })}
         style={{ padding: '10px' }}
     >
         <option value="">Επιλέξτε Όροφο</option>
@@ -695,6 +692,38 @@ function CustomerForm({ newCustomer, setNewCustomer, transferType, setTransferTy
             )}
             <button type="submit" style={{ padding: '10px 20px', marginTop: '10px' }}>Αποθήκευση Δεδομένων</button>
         </form>
+         {/* Εμφάνιση αποθηκευμένων δεδομένων πελάτη */}
+         {savedCustomer && (
+    <div style={{ marginTop: '20px', padding: '10px', border: '1px solid #ccc', borderRadius: '5px' }}>
+        <h3>Αποθηκευμένα Στοιχεία Πελάτη</h3>
+        <p><strong>Όνομα:</strong> {savedCustomer.first_name}</p>
+        <p><strong>Επώνυμο:</strong> {savedCustomer.last_name}</p>
+        <p><strong>Τηλέφωνο 1:</strong> {savedCustomer.phone_1}</p>
+        <p><strong>Τηλέφωνο 2:</strong> {savedCustomer.phone_2}</p>
+        <p><strong>Τηλέφωνο 3:</strong> {savedCustomer.phone_3}</p>
+        <p><strong>Βάρος:</strong> {savedCustomer.weight}</p>
+        <p><strong>Πληροφορίες:</strong> {savedCustomer.info}</p>
+
+        {/* Εμφάνιση Ιστορικού Πελάτη */}
+        {customerHistory.length > 0 && (
+            <div style={{ marginTop: '20px' }}>
+                <h3>Ιστορικό Πελάτη</h3>
+                <ul>
+                    {customerHistory.map((entry, index) => (
+                        <li key={index} style={{ marginBottom: '10px' }}>
+                            <p><strong>Ημερομηνία:</strong> {new Date(entry.date).toLocaleDateString()}</p>
+                            <p><strong>Αφετηρία:</strong> {entry.starting_point}</p>
+                            <p><strong>Προορισμός:</strong> {entry.destination}</p>
+                            <p><strong>Είδος Συμβάντος:</strong> {entry.incident_type}</p>
+                            <p><strong>Κόστος:</strong> {entry.cost} €</p>
+                        </li>
+                    ))}
+                </ul>
+            </div>
+        )}
+    </div>
+)}
+        </div>
     );
 }
 
