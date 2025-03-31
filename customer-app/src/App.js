@@ -104,19 +104,28 @@ function App() {
         }
     };
 
-    const handleSearch = async (e) => {
-        e.preventDefault(); // Αποφυγή ανανέωσης της σελίδας
-
+    const handleSearch = async ({ phoneNumber, firstName, lastName }) => {
         try {
-            const response = await axios.get(`http://localhost:5000/api/customer?phone_number=${phoneNumber}`);
-            if (response.data) {
-                setCustomer(response.data); // Ενημέρωση του state με τα δεδομένα του πελάτη
-                setError(''); // Καθαρισμός τυχόν προηγούμενων σφαλμάτων
+            setIsLoading(true);
+            setError('');
+            setCustomer(null); // Καθαρισμός προηγούμενων αποτελεσμάτων
+    
+            const queryParams = new URLSearchParams();
+            if (phoneNumber) queryParams.append('phone', phoneNumber);
+            if (firstName) queryParams.append('firstName', firstName);
+            if (lastName) queryParams.append('lastName', lastName);
+    
+            const response = await axios.get(`http://localhost:5000/api/customers?${queryParams.toString()}`);
+            if (response.data && response.data.length > 0) {
+                setCustomer(response.data[0]); // Ενημέρωση του state με τον πρώτο πελάτη που βρέθηκε
+            } else {
+                setError('Customer not found');
             }
         } catch (err) {
             console.error('Error fetching customer:', err);
-            setError('Customer not found or failed to fetch customer');
-            setCustomer(null); // Καθαρισμός του state αν δεν βρεθεί πελάτης
+            setError('Failed to fetch customer');
+        } finally {
+            setIsLoading(false);
         }
     };
 
