@@ -354,26 +354,28 @@ app.get('/api/customer-history/:customerId', (req, res) => {
   const { customerId } = req.params;
   
   const query = `
- SELECT ch.*, 
+SELECT ch.*, 
        c.first_name, c.last_name, c.phone_1,
        h.hospital_name, h.clinic_name, h.building_name, h.floor_number, h.room_number, h.is_starting_point,
-       h.transport_method as hospital_transport_method, -- Προσθήκη του transport_method από τον πίνακα Hospital
+       h.transport_method, h.oxygen_usage, -- Προσθήκη του oxygen_usage από τον πίνακα Hospital
        COALESCE(sp.citys, h.hospital_name) as starting_city,
        COALESCE(sp.streets, h.clinic_name) as starting_street,
        COALESCE(sp.numbers, h.building_name) as starting_number,
        COALESCE(sp.postal_codes, '') as starting_postal_code,
        COALESCE(sp.floors, h.floor_number) as starting_floor,
        COALESCE(sp.has_elevators, 0) as starting_elevator,
-       COALESCE(sp.transport_methods, h.transport_method) as starting_transport_method, -- Χρήση του transport_method από το Hospital αν το Starting_point είναι κενό
-       COALESCE(sp.has_o2s, 0) as starting_oxygen_usage,
+       COALESCE(sp.transport_methods, h.transport_method) as starting_transport_method,
+       COALESCE(sp.has_o2s, h.oxygen_usage) as starting_oxygen_usage, -- Χρήση του oxygen_usage από το Hospital αν το Starting_point είναι κενό
        COALESCE(d.cityd, h.hospital_name) as destination_city,
        COALESCE(d.streetd, h.clinic_name) as destination_street,
        COALESCE(d.numberd, h.building_name) as destination_number,
        COALESCE(d.postal_coded, '') as destination_postal_code,
        COALESCE(d.floord, h.floor_number) as destination_floor,
        COALESCE(d.has_elevatord, 0) as destination_elevator,
-       COALESCE(d.transport_methodd, h.transport_method) as destination_transport_method, -- Χρήση του transport_method από το Hospital αν το Destination είναι κενό
-       COALESCE(d.has_o2d, 0) as destination_oxygen_usage
+       COALESCE(d.doorbelld, '') as destination_doorbell,
+       COALESCE(sp.doorbells, '') as starting_doorbell,
+       COALESCE(d.transport_methodd, h.transport_method) as destination_transport_method,
+       COALESCE(d.has_o2d, h.oxygen_usage) as destination_oxygen_usage -- Χρήση του oxygen_usage από το Hospital αν το Destination είναι κενό
 FROM CustomerHistory ch
 LEFT JOIN Customer c ON ch.customer_id = c.id
 LEFT JOIN Hospital h ON ch.hospital_id = h.id
@@ -429,29 +431,29 @@ app.get('/api/counters', (req, res) => {
 });
 
 app.get('/api/customers', (req, res) => {
-    const { phone, firstName, lastName } = req.query;
-
+    const { phoneNumber, firstName, lastName } = req.query;
+  
     let query = 'SELECT * FROM Customer WHERE 1=1';
     const params = [];
-
-    if (phone) {
-        query += ' AND phone_1 = ?';
-        params.push(phone);
+  
+    if (phoneNumber) {
+      query += ' AND phone_1 = ?';
+      params.push(phoneNumber);
     }
     if (firstName && lastName) {
-        query += ' AND first_name = ? AND last_name = ?';
-        params.push(firstName, lastName);
+      query += ' AND first_name = ? AND last_name = ?';
+      params.push(firstName, lastName);
     }
-
-    db.all(query, params, (err, rows) => {
-        if (err) {
-            console.error(err.message);
-            res.status(500).send('Error fetching customers');
-        } else {
-            res.json(rows);
-        }
+  
+    db.get(query, params, (err, row) => {
+      if (err) {
+        console.error(err.message);
+        res.status(500).send('Error fetching customer');
+      } else {
+        res.json({ customer: row });
+      }
     });
-});
+  });
 
 // Close the database connection when the server shuts down
 process.on('SIGINT', () => {

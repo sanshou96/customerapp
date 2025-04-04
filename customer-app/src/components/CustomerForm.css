@@ -5,7 +5,31 @@
     padding: 1rem;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   }
+  .destination-details {
+    margin-top: 10px;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    background-color: #f9f9f9;
+  }
   
+  .destination-details div {
+    margin-bottom: 5px;
+  }
+  .history-label {
+    font-weight: bold;
+  }
+  
+  .history-item span {
+    margin-right: 10px;
+  }
+  .saved-label {
+    font-weight: bold;
+  }
+  
+  .saved-item span {
+    margin-right: 10px;
+  }
   /* Κάρτα φόρμας */
   .customer-form-card {
     background-color: #fff;
@@ -158,8 +182,10 @@
     background-color: #f8fafc;
     border-radius: 6px;
     padding: 1rem;
+    display: flex;
+    flex-wrap: wrap;
     margin-bottom: 1rem;
-  }
+}
   
   .history-item-grid {
     display: grid;
@@ -175,4 +201,5 @@
     .cost-cards-container {
       grid-template-columns: 1fr;
     }
+    
   }

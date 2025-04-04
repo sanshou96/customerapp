@@ -1,36 +1,84 @@
 "use client"
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react";
 import axios from "axios"
 import "./CustomerForm.css"
-
+const fieldLabels = {
+    first_name: "Όνομα",
+    last_name: "Επώνυμο",
+    phone_1: "Τηλέφωνο 1",
+    phone_2: "Τηλέφωνο 2",
+    phone_3: "Τηλέφωνο 3",
+    info: "Πληροφορίες",
+    weight: "Βάρος",
+    // Προσθέστε και άλλα πεδία αν χρειάζεται
+  };
 function CustomerForm({ newCustomer, setNewCustomer, transferType, setTransferType, addCustomer }) {
-  const [counters, setCounters] = useState({})
-  const [calculatedCost, setCalculatedCost] = useState(50)
-  const [savedCustomer, setSavedCustomer] = useState(null)
-  const [customerHistory, setCustomerHistory] = useState([])
-
+    const [counters, setCounters] = useState({});
+    const [calculatedCost, setCalculatedCost] = useState(50);
+    const [savedCustomer, setSavedCustomer] = useState(null);
+    const [customerHistory, setCustomerHistory] = useState([]);
+    const [editingField, setEditingField] = useState(null); // Το πεδίο που επεξεργαζόμαστε
+    const [editedValue, setEditedValue] = useState(""); // Η νέα τιμή του πεδίου
+    const customerDetailsRef = useRef(null);
   const fetchCounters = () => {
     fetch("http://localhost:5000/api/counters")
       .then((response) => response.json())
       .then((data) => setCounters(data))
       .catch((error) => console.error("Error fetching counters:", error))
   }
-
+  const scrollToCustomerDetails = () => {
+    if (customerDetailsRef.current) {
+      customerDetailsRef.current.scrollIntoView({
+        behavior: "smooth",
+        block: "center", // Τοποθετεί το στοιχείο στο κέντρο της οθόνης
+      });
+    }
+  };
   const fetchCustomerHistory = async (customerId) => {
     try {
       const response = await axios.get(`http://localhost:5000/api/customer-history/${customerId}`)
+      console.log("Customer History Response:", response.data); // Προσθέστε αυτό
       if (response.data) {
+
         setCustomerHistory(response.data)
       }
     } catch (err) {
       console.error("Error fetching customer history:", err)
     }
   }
-
+  useEffect(() => {
+    console.log("Customer History Updated:", customerHistory);
+  }, [customerHistory]);
+  useEffect(() => {
+    console.log("Rendering with customerHistory:", customerHistory);
+  }, [customerHistory]);
+  const updateCustomer = (field, value) => {
+    setSavedCustomer((prev) => ({ ...prev, [field]: value }));
+    setEditingField(null);
+  };
+  const handleSearchSubmit = async (searchCriteria) => {
+    try {
+      const response = await axios.get(`http://localhost:5000/api/customers`, { params: searchCriteria });
+      if (response.data && response.data.customer) {
+        setSavedCustomer(response.data.customer); // Αποθήκευση του πελάτη που βρέθηκε
+        fetchCustomerHistory(response.data.customer.id); // Ανάκτηση ιστορικού
+        
+      } else {
+        alert("No customer found");
+      }
+    } catch (err) {
+      console.error("Error searching for customer:", err);
+    }
+  };
   useEffect(() => {
     fetchCounters()
   }, [])
-
+  useEffect(() => {
+    // Κάθε φορά που το `savedCustomer` αλλάζει, μετακινούμαστε στο στοιχείο
+    if (savedCustomer) {
+      scrollToCustomerDetails();
+    }
+  }, [savedCustomer]);
   useEffect(() => {
     const baseCost = 50
     const floorCost = (5 * newCustomer.floors || 0) * (newCustomer.has_elevators ? 0 : 1)
@@ -53,6 +101,7 @@ function CustomerForm({ newCustomer, setNewCustomer, transferType, setTransferTy
         fetchCustomerHistory(response.customerId)
       }
       fetchCounters()
+      scrollToCustomerDetails(); 
     })
   }
 
@@ -78,7 +127,39 @@ function CustomerForm({ newCustomer, setNewCustomer, transferType, setTransferTy
               <div className="cost-value">{(calculatedCost + calculatedCost * 0.24).toFixed(2)} €</div>
             </div>
           </div>
-
+  {/* Φόρμα Αναζήτησης */}
+  <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              handleSearchSubmit({
+                phoneNumber: newCustomer.phone_1,
+                firstName: newCustomer.first_name,
+                lastName: newCustomer.last_name,
+              });
+            }}
+            className="search-form"
+          >
+            <h3>Αναζήτηση Πελάτη</h3>
+            <input
+              type="text"
+              placeholder="Τηλέφωνο"
+              value={newCustomer.phone_1 || ""}
+              onChange={(e) => setNewCustomer({ ...newCustomer, phone_1: e.target.value })}
+            />
+            <input
+              type="text"
+              placeholder="Όνομα"
+              value={newCustomer.first_name || ""}
+              onChange={(e) => setNewCustomer({ ...newCustomer, first_name: e.target.value })}
+            />
+            <input
+              type="text"
+              placeholder="Επώνυμο"
+              value={newCustomer.last_name || ""}
+              onChange={(e) => setNewCustomer({ ...newCustomer, last_name: e.target.value })}
+            />
+            <button type="submit">Αναζήτηση</button>
+          </form>
           <form onSubmit={handleSubmit} className="customer-form">
             <div className="form-section">
               <h3 className="section-title">Επιλογή Πηγής</h3>
@@ -684,112 +765,250 @@ function CustomerForm({ newCustomer, setNewCustomer, transferType, setTransferTy
           </form>
         </div>
       </div>
-
       {savedCustomer && (
-        <div className="saved-customer">
-          <div className="saved-content">
-            <h3 className="saved-title">Αποθηκευμένα Στοιχεία Πελάτη</h3>
-            <div className="saved-grid">
-              <div>
-                <span className="saved-label">Όνομα:</span> {savedCustomer.first_name}
-              </div>
-              <div>
-                <span className="saved-label">Επώνυμο:</span> {savedCustomer.last_name}
-              </div>
-              <div>
-                <span className="saved-label">Τηλέφωνο 1:</span> {savedCustomer.phone_1}
-              </div>
-              <div>
-                <span className="saved-label">Τηλέφωνο 2:</span> {savedCustomer.phone_2}
-              </div>
-              <div>
-                <span className="saved-label">Τηλέφωνο 3:</span> {savedCustomer.phone_3}
-              </div>
-              <div>
-                <span className="saved-label">Βάρος:</span> {savedCustomer.weight}
-              </div>
-              <div className="saved-wide">
-                <span className="saved-label">Πληροφορίες:</span> {savedCustomer.info}
-              </div>
-            </div>
-
-            {customerHistory.length > 0 && (
-              <div className="history-section">
-                <h3 className="history-title">Ιστορικό Πελάτη</h3>
-                <div className="history-list">
-                  {customerHistory.map((entry, index) => {
-                    const formattedDate =
-                      entry.event_date && !isNaN(new Date(entry.event_date).getTime())
-                        ? new Date(entry.event_date).toLocaleDateString("el-GR", {
-                            day: "2-digit",
-                            month: "2-digit",
-                            year: "numeric",
-                          })
-                        : "Μη διαθέσιμη"
-
-                    const formatFloor = (floor) => (floor ? `${floor}ος` : "Μη διαθέσιμο")
-
-                    const formatHospital = (entry) => {
-                      return `${entry.hospital_name || "Μη διαθέσιμο"} ${entry.clinic_name || ""} 
-                          Κτήριο: ${entry.building_name || "Μη διαθέσιμο"}, 
-                          Όροφος: ${formatFloor(entry.floor_number)},
-                          Δωμάτιο: ${entry.room_number || "Μη διαθέσιμο"}, 
-                          Μέσο μεταφοράς: ${entry.transport_method || "Μη διαθέσιμο"}, 
-                          Χρήση οξυγόνου: ${entry.oxygen_usage ? "Ναι" : "Όχι"}`
-                    }
-
-                    const startingPoint = entry.starting_city
-                      ? `${entry.starting_city}, ${entry.starting_street || ""} ${entry.starting_number || ""},
-                          Τ/Κ: ${entry.starting_postal_code || "Μη διαθέσιμο"}, 
-                          Όροφος: ${formatFloor(entry.starting_floor)},
-                          Ασανσέρ: ${entry.starting_elevator ? "Ναι" : "Όχι"}, 
-                          Μέσο μεταφοράς: ${entry.starting_transport_method || "Μη διαθέσιμο"},
-                          Χρήση οξυγόνου: ${entry.starting_oxygen_usage ? "Ναι" : "Όχι"}`
-                      : formatHospital(entry)
-
-                    const destinationPoint = entry.destination_city
-                      ? `${entry.destination_city}, ${entry.destination_street || ""} ${entry.destination_number || ""}, 
-                          Τ/Κ: ${entry.destination_postal_code || "Μη διαθέσιμο"},
-                          Όροφος: ${formatFloor(entry.destination_floor)}, 
-                          Ασανσέρ: ${entry.destination_elevator ? "Ναι" : "Όχι"}, 
-                          Μέσο μεταφοράς: ${entry.destination_transport_method || "Μη διαθέσιμο"},
-                          Χρήση οξυγόνου: ${entry.destination_oxygen_usage ? "Ναι" : "Όχι"}`
-                      : formatHospital(entry)
-
-                    return (
-                      <div key={index} className="history-item">
-                        <div>
-                          <span className="history-label">Ημερομηνία:</span> {formattedDate}
-                        </div>
-                        <div>
-                          <span className="history-label">Αφετηρία:</span> {startingPoint}
-                        </div>
-                        <div>
-                          <span className="history-label">Προορισμός:</span> {destinationPoint}
-                        </div>
-                        <div>
-                          <span className="history-label">Είδος Συμβάντος:</span>{" "}
-                          {entry.incident_type || "Μη διαθέσιμο"}
-                        </div>
-                        <div>
-                          <span className="history-label">Κόστος:</span>{" "}
-                          {entry.cost ? `${entry.cost} €` : "Μη διαθέσιμο"}
-                        </div>
-                        <div>
-                          <span className="history-label">Χρήση Οξυγόνου:</span>{" "}
-                          {entry.oxygen_usage ? "Ναι" : "Όχι"}
-                        </div>
-                      </div>
-                    )
-                  })}
-                </div>
-              </div>
+  <div ref={customerDetailsRef} className="saved-customer">
+    <div className="saved-content">
+      <h3 className="saved-title">Αποθηκευμένα Στοιχεία Πελάτη</h3>
+      <div className="saved-list">
+      {["first_name", "last_name", "phone_1", "phone_2", "phone_3", "weight", "info"].map((field) => (
+          <div key={field} className="saved-item">
+            <span className="saved-label" style={{ fontWeight: "bold" }}>
+              {fieldLabels[field] || field}:
+            </span>{" "}
+            {editingField === field ? (
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  updateCustomer(field, editedValue);
+                }}
+                style={{ display: "inline" }}
+              >
+                <input
+                  type="text"
+                  value={editedValue}
+                  onChange={(e) => setEditedValue(e.target.value)}
+                  style={{ padding: "5px", width: "150px" }}
+                />
+                <button
+                  type="submit"
+                  style={{
+                    marginLeft: "5px",
+                    padding: "5px 10px",
+                    fontSize: "12px",
+                  }}
+                >
+                  Save
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setEditingField(null)}
+                  style={{
+                    marginLeft: "5px",
+                    padding: "5px 10px",
+                    fontSize: "12px",
+                  }}
+                >
+                  Cancel
+                </button>
+              </form>
+            ) : (
+              <>
+                <span>{savedCustomer[field] || "Edit"}</span>
+                <button
+                  onClick={() => {
+                    setEditingField(field);
+                    setEditedValue(savedCustomer[field] || "");
+                  }}
+                  style={{
+                    marginLeft: "10px",
+                    padding: "5px 10px",
+                    fontSize: "12px",
+                  }}
+                >
+                  Edit
+                </button>
+              </>
             )}
+          </div>
+        ))}
+      </div>
+      {customerHistory.length > 0 && (
+  <div className="history-section">
+    <h3 className="history-title">Ιστορικό Πελάτη</h3>
+    <div className="history-list">
+    {customerHistory.map((entry, index) => {
+        console.log(entry);
+        const formattedDate =
+          entry.event_date && !isNaN(new Date(entry.event_date).getTime())
+            ? new Date(entry.event_date).toLocaleDateString("el-GR", {
+                day: "2-digit",
+                month: "2-digit",
+                year: "numeric",
+              })
+            : "Μη διαθέσιμη";
+
+        const formatHospitalDetails = (entry) => (
+          <>
+            <div>
+              <span className="history-label" style={{ fontWeight: "bold" }}>Νοσοκομείο:</span>{" "}
+              <span>{entry.hospital_name || "Μη διαθέσιμο"}</span>
+            </div>
+            <div>
+              <span className="history-label" style={{ fontWeight: "bold" }}>Κλινική:</span>{" "}
+              <span>{entry.clinic_name || "Μη διαθέσιμο"}</span>
+            </div>
+            <div>
+              <span className="history-label" style={{ fontWeight: "bold" }}>Κτήριο:</span>{" "}
+              <span>{entry.building_name || "Μη διαθέσιμο"}</span>
+            </div>
+            <div>
+              <span className="history-label" style={{ fontWeight: "bold" }}>Όροφος:</span>{" "}
+              <span>{entry.floor_number ? `${entry.floor_number}ος` : "Μη διαθέσιμο"}</span>
+            </div>
+            <div>
+              <span className="history-label" style={{ fontWeight: "bold" }}>Δωμάτιο:</span>{" "}
+              <span>{entry.room_number || "Μη διαθέσιμο"}</span>
+            </div>
+            <div>
+  <span className="history-label" style={{ fontWeight: "bold" }}>Χρήση Οξυγόνου:</span>{" "}
+  <span>{Number(entry.oxygen_usage) === 1 ? "Ναι" : "Όχι"}</span>
+</div>
+{console.log('Oxygen usage value:', entry.oxygen_usage, typeof entry.oxygen_usage)}
+            <div>
+              <span className="history-label" style={{ fontWeight: "bold" }}>Μέσο Μεταφοράς:</span>{" "}
+              <span>{entry.transport_method || "Μη διαθέσιμο"}</span>
+            </div>
+          </>
+        );
+        console.log("entry.is_starting_point:", entry);
+        const startingPoint = entry.is_starting_point === 1
+          ? formatHospitalDetails(entry)
+          : (
+            <>
+              {console.log('τρέχει ο start κώδικας')}
+              <div>
+                <span className="history-label" style={{ fontWeight: "bold" }}>Πόλη:</span>{" "}
+                <span>{entry.starting_city || "Μη διαθέσιμο"}</span>
+              </div>
+              <div>
+                <span className="history-label" style={{ fontWeight: "bold" }}>Οδός:</span>{" "}
+                <span>{entry.starting_street || "Μη διαθέσιμο"}</span>
+              </div>
+              <div>
+                <span className="history-label" style={{ fontWeight: "bold" }}>Αριθμός:</span>{" "}
+                <span>{entry.starting_number || "Μη διαθέσιμο"}</span>
+              </div>
+              <div>
+                <span className="history-label" style={{ fontWeight: "bold" }}>Τ/Κ:</span>{" "}
+                <span>{entry.starting_postal_code || "Μη διαθέσιμο"}</span>
+              </div>
+              <div>
+        <span className="history-label" style={{ fontWeight: "bold" }}>Κουδούνι:</span>{" "}
+        <span>{entry.starting_doorbell || "Μη διαθέσιμο"}</span>
+      </div>
+              <div>
+                <span className="history-label" style={{ fontWeight: "bold" }}>Όροφος:</span>{" "}
+                <span>{entry.starting_floor ? `${entry.starting_floor}ος` : "Μη διαθέσιμο"}</span>
+              </div>
+              <div>
+  <span className="history-label" style={{ fontWeight: "bold" }}>Ασανσέρ:</span>{" "}
+  <span>{Number(entry.starting_elevator) === 1 ? "Ναι" : "Όχι"}</span>
+</div>
+              <div>
+                <span className="history-label" style={{ fontWeight: "bold" }}>Μέσο Μεταφοράς:</span>{" "}
+                <span>{entry.starting_transport_method || "Μη διαθέσιμο"}</span>
+              </div>
+              {console.log('starting Oxygen usage value:', entry.starting_oxygen_usage, typeof entry.starting_oxygen_usage)}
+              <div>
+  <span className="history-label" style={{ fontWeight: "bold" }}>Χρήση Οξυγόνου:</span>{" "}
+  <span>{parseInt(entry.starting_oxygen_usage, 10) === 1 ? "Ναι" : "Όχι"}</span>
+</div>
+            </>
+          );
+
+          const destinationPoint = entry.is_starting_point === 0
+          ? formatHospitalDetails(entry)
+          : (
+            <>
+            {console.log('τρέχει ο dest κώδικας')}
+              <div>
+                <span className="history-label" style={{ fontWeight: "bold" }}>Πόλη:</span>{" "}
+                <span>{entry.destination_city || "Μη διαθέσιμο"}</span>
+              </div>
+              <div>
+                <span className="history-label" style={{ fontWeight: "bold" }}>Οδός:</span>{" "}
+                <span>{entry.destination_street || "Μη διαθέσιμο"}</span>
+              </div>
+              <div>
+                <span className="history-label" style={{ fontWeight: "bold" }}>Αριθμός:</span>{" "}
+                <span>{entry.destination_number || "Μη διαθέσιμο"}</span>
+              </div>
+              <div>
+                <span className="history-label" style={{ fontWeight: "bold" }}>Τ/Κ:</span>{" "}
+                <span>{entry.destination_postal_code || "Μη διαθέσιμο"}</span>
+              </div>
+              <div>
+        <span className="history-label" style={{ fontWeight: "bold" }}>Κουδούνι:</span>{" "}
+        <span>{entry.destination_doorbell || "Μη διαθέσιμο"}</span>
+      </div>
+              <div>
+                <span className="history-label" style={{ fontWeight: "bold" }}>Όροφος:</span>{" "}
+                <span>{entry.destination_floor ? `${entry.destination_floor}ος` : "Μη διαθέσιμο"}</span>
+              </div>
+              <div>
+  <span className="history-label" style={{ fontWeight: "bold" }}>Ασανσέρ:</span>{" "}
+  <span>{Number(entry.destination_elevator) === 1 ? "Ναι" : "Όχι"}</span>
+</div>
+              <div>
+                <span className="history-label" style={{ fontWeight: "bold" }}>Μέσο Μεταφοράς:</span>{" "}
+                <span>{entry.destination_transport_method || "Μη διαθέσιμο"}</span>
+              </div>
+              {console.log('dest Oxygen usage value:', entry.destination_oxygen_usage, typeof entry.destination_oxygen_usage)}
+              <div>
+  <span className="history-label" style={{ fontWeight: "bold" }}>Χρήση Οξυγόνου:</span>{" "}
+  <span>{parseInt(entry.destination_oxygen_usage, 10) === 1 ? "Ναι" : "Όχι"}</span>
+</div>
+            </>
+          );
+
+        return (
+          <div key={index} className="history-item">
+            <div>
+              <span className="history-label" style={{ fontWeight: "bold" }}>Ημερομηνία:</span>{" "}
+              <span>{formattedDate}</span>
+            </div>
+            <div>
+              <span className="history-label" style={{ fontWeight: "bold" }}>Αφετηρία:</span>{" "}
+              {startingPoint}
+            </div>
+            <div>
+              <span className="history-label" style={{ fontWeight: "bold" }}>Προορισμός:</span>{" "}
+              {destinationPoint}
+            </div>
+            <div>
+              <span className="history-label" style={{ fontWeight: "bold" }}>Είδος Συμβάντος:</span>{" "}
+              <span>{entry.incident_type || "Μη διαθέσιμο"}</span>
+            </div>
+            <div>
+              <span className="history-label" style={{ fontWeight: "bold" }}>Κόστος:</span>{" "}
+              <span>{entry.cost ? `${entry.cost} €` : "Μη διαθέσιμο"}</span>
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  </div>
+)}
           </div>
         </div>
       )}
+      
+          
+        
     </div>
+    
   )
+  
 }
 
 export default CustomerForm
