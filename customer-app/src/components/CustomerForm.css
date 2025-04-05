@@ -12,7 +12,19 @@
     border-radius: 5px;
     background-color: #f9f9f9;
   }
+  .phone-container {
+    display: flex;
+    gap: 0; /* Αφαιρεί το κενό ανάμεσα στα τηλέφωνα */
+  }
   
+  .phone-container span {
+    padding: 0; /* Αφαιρεί το padding από κάθε τηλέφωνο */
+    margin-right: 8px; /* Προσθέτει μικρό κενό μόνο αν χρειάζεται */
+  }
+  
+  .phone-container span:last-child {
+    margin-right: 0; /* Αφαιρεί το κενό από το τελευταίο τηλέφωνο */
+  }
   .destination-details div {
     margin-bottom: 5px;
   }
@@ -191,7 +203,63 @@
     display: grid;
     gap: 0.5rem;
   }
+  .table {
+    display: table;
+    width: 100%;
+    table-layout: fixed;
+  }
   
+  .table-row {
+    display: table-row;
+  }
+  
+  .table-cell {
+    display: table-cell;
+    padding: 4px;
+    vertical-align: top;
+    word-wrap: break-word; /* Επιτρέπει την αλλαγή γραμμής */
+  }
+  /* Ιστορικό Πελάτη */
+.history-section {
+  margin-top: 20px;
+}
+
+.history-title {
+  font-size: 1.5rem;
+  margin-bottom: 10px;
+}
+
+.table {
+  display: table;
+  width: 100%;
+  table-layout: fixed;
+  border-collapse: collapse;
+}
+
+.table-row {
+  display: table-row;
+ 
+}
+
+.table-cell {
+  display: table-cell;
+  padding: 8px;
+  vertical-align: top;
+  word-wrap: break-word;
+}
+
+.table-cell:first-child {
+  font-weight: bold;
+}
+
+.table-cell:last-child {
+  text-align: right;
+}
+  .info-cell {
+    max-width: 300px; /* Ορίστε το μέγιστο πλάτος */
+    white-space: pre-wrap; /* Διατηρεί τα νέα κενά και αλλάζει γραμμή */
+    word-wrap: break-word;
+  }
   /* Responsive ρυθμίσεις */
   @media (max-width: 768px) {
     .form-grid {

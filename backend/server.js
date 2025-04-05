@@ -15,7 +15,7 @@ app.use(express.urlencoded({ extended: true }));
 
 // Search customer by phone number
 app.get('/api/customer', (req, res) => {
-  console.log('Received request for phone number:', req.query.phone_1);
+ 
   const phoneNumber = req.query.phone_1;
   const query = `SELECT * FROM Customer WHERE phone_1 = ?`;
 
@@ -33,7 +33,7 @@ app.get('/api/customer', (req, res) => {
 
 // Add or update customer information
 app.post('/api/customer', async (req, res) => {
-  console.log('Received customer data:', req.body);
+  
   
   try {
     const {
@@ -46,7 +46,7 @@ app.post('/api/customer', async (req, res) => {
     } = req.body;
    let cost = 50;
    
-  console.log('Received customer data:', incident_type);
+
     // Helper functions for database operations
     function insertCustomer(data) {
       return new Promise((resolve, reject) => {
@@ -173,7 +173,7 @@ app.post('/api/customer', async (req, res) => {
 }
    
     function insertCustomerHistory(customer_id, hospital_id, destination_id, starting_point_id, cost, incident_type) {
-        console.log('Τιμή κόστους που θα αποθηκευτεί:', incident_type);
+       
         return new Promise((resolve, reject) => {
           const query = `
             INSERT INTO CustomerHistory (customer_id, hospital_id, destination_id, starting_point_id, cost, incident_type)
@@ -206,7 +206,7 @@ app.post('/api/customer', async (req, res) => {
             console.error(`Error updating counter ${counterField}:`, err.message);
             return reject(err);
           }
-          console.log(`Counter ${counterField} updated successfully`);
+         
           
           // Return updated counters
           const fetchCountersQuery = `SELECT "166c", "153c", "011c", "1600c" FROM Counters`;
@@ -222,7 +222,7 @@ app.post('/api/customer', async (req, res) => {
     }
     
     // Check if customer exists
-    const checkCustomerQuery = `SELECT id FROM Customer WHERE first_name = ? AND last_name = ?`;
+    const checkCustomerQuery = `SELECT id, info FROM Customer WHERE first_name = ? AND last_name = ?`;
     db.get(checkCustomerQuery, [first_name, last_name], async (err, row) => {
       if (err) {
         console.error('Error checking customer:', err.message);
@@ -234,16 +234,20 @@ app.post('/api/customer', async (req, res) => {
       if (row) {
         // Update existing customer
         customerId = row.id;
+        const updatedInfo = row.info ? `${row.info},${info}` : info; // Συνένωση του υπάρχοντος info με το νέο
         const updateCustomerQuery = `
           UPDATE Customer
           SET phone_1 = ?, phone_2 = ?, phone_3 = ?, weight = ?, info = ?
           WHERE id = ?
         `;
-        db.run(updateCustomerQuery, [phone_1, phone_2, phone_3, weight, info, customerId], function(err) {
+        db.run(updateCustomerQuery, [phone_1, phone_2, phone_3, weight,updatedInfo, customerId], function(err) {
           if (err) {
+            
             console.error('Error updating customer:', err.message);
             return res.status(500).json({ error: 'Failed to update customer' });
           }
+          console.log(updatedInfo);
+          console.log(row.info);
           console.log('Customer updated successfully');
         });
       } else {
@@ -260,19 +264,13 @@ app.post('/api/customer', async (req, res) => {
       try {
         // Process other data
         const hospitalId = await insertHospital(req.body);
-        console.log('Hospital ID:', hospitalId);
+        
         const startingPointId = await insertStartingPoint(req.body);
-        console.log('Starting Point ID:', startingPointId);
+        
         const destinationId = await insertDestination(req.body);
-        console.log('Destination ID:', destinationId);
        
-        console.log('Computed IDs:', {
-            hospitalId,
-            startingPointId,
-            destinationId,
-            cost,
-            incident_type,
-        });
+       
+    
         // Insert customer history
         let historyId = null;
         const customer_id = customerId;
@@ -284,15 +282,15 @@ app.post('/api/customer', async (req, res) => {
         if (customerId || hospitalId || startingPointId || destinationId || cost) {
             if (destinationId && destinationId.has_elevatord === 0 && destinationId.floord != 'undefined') {
                 cost += ((destinationId.floord || 0) * 5);
-                console.log('Τιμή κόστους που θα αποθηκευτεί:', cost);
+               
             }else{
                 destinationId.floord= null;
             }
             if (startingPointId && startingPointId.has_elevators === 0 && startingPointId.floors != 'undefined') {
                 cost += (5 * (startingPointId.floors || 0));
-                console.log('Τιμή κόστους που θα αποθηκευτεί:', cost);
+                
             }
-            console.log('Hospital ID:', hospitalId);
+           
           try {
             historyId = await insertCustomerHistory(
               customer_id, 
@@ -303,7 +301,7 @@ app.post('/api/customer', async (req, res) => {
               incident_type
             );
       
-            console.log('Customer history added successfully with ID:', historyId);
+           
           } catch (error) {
             console.error('Error inserting customer history:', error.message);
             // Continue execution even if history insertion fails
@@ -316,7 +314,7 @@ app.post('/api/customer', async (req, res) => {
         if (code) {
           try {
             counters = await updateCounter(code);
-            console.log('Counters updated successfully:', counters);
+            
           } catch (error) {
             console.error('Error updating counters:', error.message);
             // Continue execution even if counter update fails
@@ -390,32 +388,34 @@ ORDER BY ch.id DESC;
         console.error('Error fetching customer history:', err.message);
         return res.status(500).json({ error: 'Failed to fetch customer history' });
     }
-    console.log('Customer history rows:', rows); // Debugging
+    
     res.json(rows);
 });
 });
 
 // Update customer endpoint
 app.put('/api/customer/:id', (req, res) => {
-  const { id } = req.params;
-  const { first_name, last_name, phone_1, phone_2, phone_3, info, weight } = req.body;
-
-  const query = `
-    UPDATE Customer
-    SET first_name = ?, last_name = ?, phone_1 = ?, phone_2 = ?, phone_3 = ?, info = ?, weight = ?
-    WHERE id = ?
-  `;
-
-  db.run(query, [first_name, last_name, phone_1, phone_2, phone_3, info, weight, id], function(err) {
-    if (err) {
-      console.error('Error updating customer:', err.message);
-      return res.status(500).json({ error: 'Failed to update customer' });
-    }
-    if (!res.headersSent) {
+    const { id } = req.params;
+    const updates = req.body;
+  
+    // Δημιουργία δυναμικού query
+    const fields = Object.keys(updates).map((key) => `${key} = ?`).join(', ');
+    const values = Object.values(updates);
+  
+    const query = `
+      UPDATE Customer
+      SET ${fields}
+      WHERE id = ?
+    `;
+  
+    db.run(query, [...values, id], function(err) {
+      if (err) {
+        console.error('Error updating customer:', err.message);
+        return res.status(500).json({ error: 'Failed to update customer' });
+      }
       res.json({ message: 'Customer updated successfully' });
-    }
+    });
   });
-});
 
 // Get counters endpoint
 app.get('/api/counters', (req, res) => {
@@ -454,7 +454,23 @@ app.get('/api/customers', (req, res) => {
       }
     });
   });
-
+  app.get('/api/customers', (req, res) => {
+    const { firstName, lastName } = req.query;
+  
+    const query = `SELECT * FROM Customer WHERE first_name = ? AND last_name = ?`;
+    db.get(query, [firstName, lastName], (err, row) => {
+      if (err) {
+        console.error('Error fetching customer:', err.message);
+        return res.status(500).json({ error: 'Failed to fetch customer' });
+      }
+  
+      if (row) {
+        res.json({ customer: row });
+      } else {
+        res.status(404).json({ message: 'Customer not found' });
+      }
+    });
+  });
 // Close the database connection when the server shuts down
 process.on('SIGINT', () => {
   db.close((err) => {

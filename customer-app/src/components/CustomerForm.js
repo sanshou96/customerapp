@@ -52,9 +52,24 @@ function CustomerForm({ newCustomer, setNewCustomer, transferType, setTransferTy
   useEffect(() => {
     console.log("Rendering with customerHistory:", customerHistory);
   }, [customerHistory]);
-  const updateCustomer = (field, value) => {
-    setSavedCustomer((prev) => ({ ...prev, [field]: value }));
-    setEditingField(null);
+  const updateCustomer = async (field, value) => {
+    try {
+      // Κλήση API για ενημέρωση στη βάση δεδομένων
+      const response = await axios.put(`http://localhost:5000/api/customer/${savedCustomer.id}`, {
+        [field]: value,
+      });
+  
+      if (response.status === 200) {
+        // Ενημέρωση του τοπικού state με τη νέα τιμή
+        setSavedCustomer((prev) => ({ ...prev, [field]: value }));
+        setEditingField(null);
+      } else {
+        alert("Η ενημέρωση απέτυχε. Παρακαλώ δοκιμάστε ξανά.");
+      }
+    } catch (error) {
+      console.error("Σφάλμα κατά την ενημέρωση του πελάτη:", error);
+      alert("Σφάλμα κατά την ενημέρωση. Παρακαλώ δοκιμάστε ξανά.");
+    }
   };
   const handleSearchSubmit = async (searchCriteria) => {
     try {
@@ -769,51 +784,60 @@ function CustomerForm({ newCustomer, setNewCustomer, transferType, setTransferTy
   <div ref={customerDetailsRef} className="saved-customer">
     <div className="saved-content">
       <h3 className="saved-title">Αποθηκευμένα Στοιχεία Πελάτη</h3>
-      <div className="saved-list">
-      {["first_name", "last_name", "phone_1", "phone_2", "phone_3", "weight", "info"].map((field) => (
-          <div key={field} className="saved-item">
-            <span className="saved-label" style={{ fontWeight: "bold" }}>
-              {fieldLabels[field] || field}:
-            </span>{" "}
-            {editingField === field ? (
-              <form
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  updateCustomer(field, editedValue);
-                }}
-                style={{ display: "inline" }}
-              >
-                <input
-                  type="text"
-                  value={editedValue}
-                  onChange={(e) => setEditedValue(e.target.value)}
-                  style={{ padding: "5px", width: "150px" }}
-                />
-                <button
-                  type="submit"
-                  style={{
-                    marginLeft: "5px",
-                    padding: "5px 10px",
-                    fontSize: "12px",
+      <div className="table">
+        {["first_name", "last_name", "phone_1", "phone_2", "phone_3", "weight", "info"].map((field) => (
+          <div key={field} className="table-row">
+            <div className="table-cell">{fieldLabels[field] || field}</div>
+            <div className="table-cell">
+              {editingField === field ? (
+                <form
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    updateCustomer(field, editedValue);
                   }}
+                  style={{ display: "inline" }}
                 >
-                  Save
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setEditingField(null)}
-                  style={{
-                    marginLeft: "5px",
-                    padding: "5px 10px",
-                    fontSize: "12px",
-                  }}
-                >
-                  Cancel
-                </button>
-              </form>
-            ) : (
-              <>
+                  <input
+                    type="text"
+                    value={editedValue}
+                    onChange={(e) => setEditedValue(e.target.value)}
+                    style={{ padding: "5px", width: "150px" }}
+                  />
+                </form>
+              ) : (
                 <span>{savedCustomer[field] || "Edit"}</span>
+              )}
+            </div>
+            <div className="table-cell">
+              {editingField === field ? (
+                <>
+                  <button
+                    type="submit"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      updateCustomer(field, editedValue);
+                    }}
+                    style={{
+                      marginLeft: "5px",
+                      padding: "5px 10px",
+                      fontSize: "12px",
+                    }}
+                  >
+                    Save
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setEditingField(null)}
+                    style={{
+                      marginLeft: "5px",
+                      padding: "5px 10px",
+                      fontSize: "12px",
+                    }}
+                  >
+                    Cancel
+                  </button>
+                </>
+              ) : (
                 <button
                   onClick={() => {
                     setEditingField(field);
@@ -827,8 +851,8 @@ function CustomerForm({ newCustomer, setNewCustomer, transferType, setTransferTy
                 >
                   Edit
                 </button>
-              </>
-            )}
+              )}
+            </div>
           </div>
         ))}
       </div>
@@ -881,11 +905,11 @@ function CustomerForm({ newCustomer, setNewCustomer, transferType, setTransferTy
           </>
         );
         console.log("entry.is_starting_point:", entry);
-        const startingPoint = entry.is_starting_point === 1
+        const startingPoint = entry.is_starting_point
           ? formatHospitalDetails(entry)
           : (
             <>
-              {console.log('τρέχει ο start κώδικας')}
+              {console.log('τρέχει ο d κώδικας')}
               <div>
                 <span className="history-label" style={{ fontWeight: "bold" }}>Πόλη:</span>{" "}
                 <span>{entry.starting_city || "Μη διαθέσιμο"}</span>
@@ -902,10 +926,6 @@ function CustomerForm({ newCustomer, setNewCustomer, transferType, setTransferTy
                 <span className="history-label" style={{ fontWeight: "bold" }}>Τ/Κ:</span>{" "}
                 <span>{entry.starting_postal_code || "Μη διαθέσιμο"}</span>
               </div>
-              <div>
-        <span className="history-label" style={{ fontWeight: "bold" }}>Κουδούνι:</span>{" "}
-        <span>{entry.starting_doorbell || "Μη διαθέσιμο"}</span>
-      </div>
               <div>
                 <span className="history-label" style={{ fontWeight: "bold" }}>Όροφος:</span>{" "}
                 <span>{entry.starting_floor ? `${entry.starting_floor}ος` : "Μη διαθέσιμο"}</span>
@@ -926,7 +946,7 @@ function CustomerForm({ newCustomer, setNewCustomer, transferType, setTransferTy
             </>
           );
 
-          const destinationPoint = entry.is_starting_point === 0
+        const destinationPoint = !entry.is_starting_point
           ? formatHospitalDetails(entry)
           : (
             <>
@@ -947,10 +967,6 @@ function CustomerForm({ newCustomer, setNewCustomer, transferType, setTransferTy
                 <span className="history-label" style={{ fontWeight: "bold" }}>Τ/Κ:</span>{" "}
                 <span>{entry.destination_postal_code || "Μη διαθέσιμο"}</span>
               </div>
-              <div>
-        <span className="history-label" style={{ fontWeight: "bold" }}>Κουδούνι:</span>{" "}
-        <span>{entry.destination_doorbell || "Μη διαθέσιμο"}</span>
-      </div>
               <div>
                 <span className="history-label" style={{ fontWeight: "bold" }}>Όροφος:</span>{" "}
                 <span>{entry.destination_floor ? `${entry.destination_floor}ος` : "Μη διαθέσιμο"}</span>
