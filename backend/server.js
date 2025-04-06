@@ -45,7 +45,7 @@ app.post('/api/customer', async (req, res) => {
       postal_coded, has_o2s, has_o2d, code, is_starting_point, incident_type
     } = req.body;
    let cost = 50;
-   
+   let fpa = 0;
 
     // Helper functions for database operations
     function insertCustomer(data) {
@@ -172,12 +172,12 @@ app.post('/api/customer', async (req, res) => {
       }
 }
    
-    function insertCustomerHistory(customer_id, hospital_id, destination_id, starting_point_id, cost, incident_type) {
+    function insertCustomerHistory(customer_id, hospital_id, destination_id, starting_point_id, cost,fpa, incident_type) {
        
         return new Promise((resolve, reject) => {
           const query = `
-            INSERT INTO CustomerHistory (customer_id, hospital_id, destination_id, starting_point_id, cost, incident_type)
-            VALUES (?, ?, ?, ?, ?, ?)
+            INSERT INTO CustomerHistory (customer_id, hospital_id, destination_id, starting_point_id, cost,fpa, incident_type)
+            VALUES (?, ?, ?, ?, ?, ?,?)
           `;
           db.run(query, [
             customer_id || null,
@@ -185,6 +185,7 @@ app.post('/api/customer', async (req, res) => {
             destination_id || null,
             starting_point_id || null,
             cost, 
+            fpa,
             incident_type || null
           ], function(err) {
             if (err) {
@@ -279,7 +280,7 @@ app.post('/api/customer', async (req, res) => {
         const starting_point_id = startingPointId.id || null;
         
 
-        if (customerId || hospitalId || startingPointId || destinationId || cost) {
+        if (customerId || hospitalId || startingPointId || destinationId || cost || fpa) {
             if (destinationId && destinationId.has_elevatord === 0 && destinationId.floord != 'undefined') {
                 cost += ((destinationId.floord || 0) * 5);
                
@@ -290,7 +291,7 @@ app.post('/api/customer', async (req, res) => {
                 cost += (5 * (startingPointId.floors || 0));
                 
             }
-           
+           fpa = cost+cost * 0.24;
           try {
             historyId = await insertCustomerHistory(
               customer_id, 
@@ -298,6 +299,7 @@ app.post('/api/customer', async (req, res) => {
               destination_id, 
               starting_point_id, 
               cost, 
+              fpa,
               incident_type
             );
       
@@ -348,49 +350,60 @@ app.post('/api/customer', async (req, res) => {
 
 
 // Get customer history
-app.get('/api/customer-history/:customerId', (req, res) => {
+app.get('/api/customer-history/:customerId', async (req, res) => {
   const { customerId } = req.params;
-  
-  const query = `
-SELECT ch.*, 
-       c.first_name, c.last_name, c.phone_1,
-       h.hospital_name, h.clinic_name, h.building_name, h.floor_number, h.room_number, h.is_starting_point,
-       h.transport_method, h.oxygen_usage, -- Προσθήκη του oxygen_usage από τον πίνακα Hospital
-       COALESCE(sp.citys, h.hospital_name) as starting_city,
-       COALESCE(sp.streets, h.clinic_name) as starting_street,
-       COALESCE(sp.numbers, h.building_name) as starting_number,
-       COALESCE(sp.postal_codes, '') as starting_postal_code,
-       COALESCE(sp.floors, h.floor_number) as starting_floor,
-       COALESCE(sp.has_elevators, 0) as starting_elevator,
-       COALESCE(sp.transport_methods, h.transport_method) as starting_transport_method,
-       COALESCE(sp.has_o2s, h.oxygen_usage) as starting_oxygen_usage, -- Χρήση του oxygen_usage από το Hospital αν το Starting_point είναι κενό
-       COALESCE(d.cityd, h.hospital_name) as destination_city,
-       COALESCE(d.streetd, h.clinic_name) as destination_street,
-       COALESCE(d.numberd, h.building_name) as destination_number,
-       COALESCE(d.postal_coded, '') as destination_postal_code,
-       COALESCE(d.floord, h.floor_number) as destination_floor,
-       COALESCE(d.has_elevatord, 0) as destination_elevator,
-       COALESCE(d.doorbelld, '') as destination_doorbell,
-       COALESCE(sp.doorbells, '') as starting_doorbell,
-       COALESCE(d.transport_methodd, h.transport_method) as destination_transport_method,
-       COALESCE(d.has_o2d, h.oxygen_usage) as destination_oxygen_usage -- Χρήση του oxygen_usage από το Hospital αν το Destination είναι κενό
-FROM CustomerHistory ch
-LEFT JOIN Customer c ON ch.customer_id = c.id
-LEFT JOIN Hospital h ON ch.hospital_id = h.id
-LEFT JOIN Starting_point sp ON ch.starting_point_id = sp.id
-LEFT JOIN Destination d ON ch.destination_id = d.id
-WHERE ch.customer_id = ?
-ORDER BY ch.id DESC;
-  `;
-  
-  db.all(query, [customerId], (err, rows) => {
-    if (err) {
-        console.error('Error fetching customer history:', err.message);
+
+  try {
+    console.log('Fetching history for customer ID:', customerId); // Καταγραφή του customerId
+
+    const query = `
+      SELECT ch.*, 
+             c.first_name, c.last_name, c.phone_1,
+             h.hospital_name, h.clinic_name, h.building_name, h.floor_number, h.room_number, h.is_starting_point,
+             h.transport_method, h.oxygen_usage,
+             COALESCE(sp.citys, h.hospital_name) as starting_city,
+             COALESCE(sp.streets, h.clinic_name) as starting_street,
+             COALESCE(sp.numbers, h.building_name) as starting_number,
+             COALESCE(sp.postal_codes, '') as starting_postal_code,
+             COALESCE(sp.floors, h.floor_number) as starting_floor,
+             COALESCE(sp.has_elevators, 0) as starting_elevator,
+             COALESCE(sp.transport_methods, h.transport_method) as starting_transport_method,
+             COALESCE(sp.has_o2s, h.oxygen_usage) as starting_oxygen_usage,
+             COALESCE(d.cityd, h.hospital_name) as destination_city,
+             COALESCE(d.streetd, h.clinic_name) as destination_street,
+             COALESCE(d.numberd, h.building_name) as destination_number,
+             COALESCE(d.postal_coded, '') as destination_postal_code,
+             COALESCE(d.floord, h.floor_number) as destination_floor,
+             COALESCE(d.has_elevatord, 0) as destination_elevator,
+             COALESCE(d.doorbelld, '') as destination_doorbell,
+             COALESCE(sp.doorbells, '') as starting_doorbell,
+             COALESCE(d.transport_methodd, h.transport_method) as destination_transport_method,
+             COALESCE(d.has_o2d, h.oxygen_usage) as destination_oxygen_usage,
+             ch.fpa -- Προσθήκη του FPA
+      FROM CustomerHistory ch
+      LEFT JOIN Customer c ON ch.customer_id = c.id
+      LEFT JOIN Hospital h ON ch.hospital_id = h.id
+      LEFT JOIN Starting_point sp ON ch.starting_point_id = sp.id
+      LEFT JOIN Destination d ON ch.destination_id = d.id
+      WHERE ch.customer_id = ?
+      ORDER BY ch.id DESC;
+    `;
+
+    console.log('Executing query:', query); // Καταγραφή του query
+
+    db.all(query, [customerId], (err, rows) => {
+      if (err) {
+        console.error('Error executing query:', err.message); // Καταγραφή του σφάλματος
         return res.status(500).json({ error: 'Failed to fetch customer history' });
-    }
-    
-    res.json(rows);
-});
+      }
+
+      console.log('Query result:', rows); // Καταγραφή των αποτελεσμάτων
+      res.json(rows);
+    });
+  } catch (error) {
+    console.error('Error fetching customer history:', error.message);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
 });
 
 // Update customer endpoint
