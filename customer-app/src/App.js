@@ -76,7 +76,7 @@ function App() {
     };
 
     return (
-        <div style={{ padding: '20px' }}>
+        <div >
             
          
             {isLoading && <p>Loading...</p>}

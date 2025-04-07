@@ -335,9 +335,9 @@ function CustomerForm({
       const response = await axios.get(`http://localhost:5000/api/customers`, {
         params: searchCriteria,
       });
-      if (response.data && response.data.customer) {
-        setSavedCustomer(response.data.customer); // Αποθήκευση του πελάτη που βρέθηκε
-        fetchCustomerHistory(response.data.customer.id); // Ανάκτηση ιστορικού
+      if (response.data && response.data.customers && response.data.customers.length > 0) {
+        setSavedCustomer(response.data.customers[0]); // Αποθήκευση του πρώτου πελάτη που βρέθηκε
+        fetchCustomerHistory(response.data.customers[0].id); // Ανάκτηση ιστορικού
       } else {
         alert("No customer found");
       }
@@ -424,64 +424,77 @@ function CustomerForm({
 
   return (
     <div className="customer-container">
+  <div className="counters-and-search">
+  <div className="counters-container">
+    <div className="counters-grid">
+      <div className="counter-box">
+        <h4 className="counter-title">166</h4>
+        <p className="counter-value">{counters["166c"] || 0}</p>
+      </div>
+      <div className="counter-box">
+        <h4 className="counter-title">153</h4>
+        <p className="counter-value">{counters["153c"] || 0}</p>
+      </div>
+      <div className="counter-box">
+        <h4 className="counter-title">011</h4>
+        <p className="counter-value">{counters["011c"] || 0}</p>
+      </div>
+      <div className="counter-box">
+        <h4 className="counter-title">1600</h4>
+        <p className="counter-value">{counters["1600c"] || 0}</p>
+      </div>
+    </div>
+  </div>
+
+  <form
+    onSubmit={(e) => {
+      e.preventDefault();
+      handleSearchSubmit({
+        phoneNumber: newCustomer.phone_1,
+        firstName: newCustomer.first_name,
+        lastName: newCustomer.last_name,
+      });
+    }}
+    className="search-form"
+  >
+    <p>Είσαγεται το τηλέφωνο ή το ονοματεπώνυμο</p>
+    <div className="input-group">
+      <input
+        type="text"
+        placeholder="Όνομα"
+        value={newCustomer.first_name || ""}
+        onChange={(e) =>
+          setNewCustomer({ ...newCustomer, first_name: e.target.value.trim() })
+        }
+      />
+      <input
+        type="text"
+        placeholder="Επώνυμο"
+        value={newCustomer.last_name || ""}
+        onChange={(e) =>
+          setNewCustomer({ ...newCustomer, last_name: e.target.value.trim() })
+        }
+      />
+      <input
+        type="text"
+        placeholder="Τηλέφωνο"
+        value={newCustomer.phone_1 || ""}
+        onChange={(e) =>
+          setNewCustomer({ ...newCustomer, phone_1: e.target.value.trim() })
+        }
+      />
+      <button type="submit">Αναζήτηση</button>
+    </div>
+    
+  </form>
+</div>
       <div className="customer-card">
         <div className="customer-content">
-          <h2 className="customer-title">Διαχείριση Πελατών</h2>
-
-          <div className="cost-container">
-            <div className="cost-box">
-              <h3 className="cost-title">Υπολογισμένο Κόστος</h3>
-              <div className="cost-value">{calculatedCost} €</div>
-            </div>
-            <div className="cost-box">
-              <h3 className="cost-title">Υπολογισμένο Κόστος + ΦΠΑ</h3>
-              <div className="cost-value">
-                {(calculatedCost + calculatedCost * 0.24).toFixed(2)} €
-              </div>
-            </div>
-          </div>
-          {/* Φόρμα Αναζήτησης */}
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              handleSearchSubmit({
-                phoneNumber: newCustomer.phone_1,
-                firstName: newCustomer.first_name,
-                lastName: newCustomer.last_name,
-              });
-            }}
-            className="search-form"
-          >
-            <h3>Αναζήτηση Πελάτη</h3>
-
-            <input
-              type="text"
-              placeholder="Όνομα"
-              value={newCustomer.first_name || ""}
-              onChange={(e) =>
-                setNewCustomer({ ...newCustomer, first_name: e.target.value })
-              }
-            />
-            <input
-              type="text"
-              placeholder="Επώνυμο"
-              value={newCustomer.last_name || ""}
-              onChange={(e) =>
-                setNewCustomer({ ...newCustomer, last_name: e.target.value })
-              }
-            />
-            <input
-              type="text"
-              placeholder="Τηλέφωνο"
-              value={newCustomer.phone_1 || ""}
-              onChange={(e) =>
-                setNewCustomer({ ...newCustomer, phone_1: e.target.value })
-              }
-            />
-            <button type="submit">Αναζήτηση</button>
-          </form>
-          <form onSubmit={handleSubmit} className="customer-form">
-            <div className="form-section">
+          
+        <form onSubmit={handleSubmit} className="main-grid">
+  {/* Πρώτο τεταρτημόριο (πάνω και κάτω αριστερά) */}
+  <div className="left-section">
+  <div className="form-section">
               <h3 className="section-title">Επιλογή Πηγής</h3>
               <select
                 className="form-select"
@@ -497,17 +510,6 @@ function CustomerForm({
                 <option value="1600">1600</option>
               </select>
             </div>
-
-            <div className="counters-section">
-              <h3 className="section-title">Στατιστικά Counters</h3>
-              <ul className="counters-list">
-                <li>166: {counters["166c"] || 0}</li>
-                <li>153: {counters["153c"] || 0}</li>
-                <li>011: {counters["011c"] || 0}</li>
-                <li>1600: {counters["1600c"] || 0}</li>
-              </ul>
-            </div>
-
             <div className="form-section">
               <h3 className="section-title">Στοιχεία παραλαβής</h3>
               <div className="radio-group">
@@ -533,8 +535,9 @@ function CustomerForm({
                 </label>
               </div>
             </div>
-
-            {transferType === "Από Νοσοκομείο για Σπίτι" && (
+    <div className="form-section">
+      
+      {transferType === "Από Νοσοκομείο για Σπίτι" && (
               <div className="form-section hospital-section">
                 <h3 className="section-title">Στοιχεία Νοσοκομείου</h3>
                 <div className="form-grid">
@@ -655,18 +658,21 @@ function CustomerForm({
 
                   <div className="form-field">
                     <label className="field-label">Μέσο Μεταφοράς</label>
-                    <input
-                      type="text"
-                      className="form-input"
-                      placeholder="Μέσο Μεταφοράς"
-                      value={newCustomer.transport_method || ""}
-                      onChange={(e) =>
-                        setNewCustomer({
-                          ...newCustomer,
-                          transport_method: e.target.value,
-                        })
-                      }
-                    />
+                    <select
+    className="form-select"
+    value={newCustomer.transport_method || ""}
+    onChange={(e) =>
+      setNewCustomer({
+        ...newCustomer,
+        transport_method: e.target.value,
+      })
+    }
+  >
+    <option value="">Επιλέξτε Μέσο Μεταφοράς</option>
+    <option value="Φορείο">Φορείο</option>
+    <option value="Καρέκλα">Καρέκλα</option>
+    <option value="Scoop">Scoop</option>
+  </select>
                   </div>
                 </div>
               </div>
@@ -678,12 +684,12 @@ function CustomerForm({
                 <div className="form-grid">
                   <div className="form-field">
                     <label className="field-label">
-                      Δήμος/Περιοχή/Νομός/Πόλη
+                    Νομός/Δήμος/Πόλη
                     </label>
                     <input
                       type="text"
                       className="form-input"
-                      placeholder="Δήμος/Περιοχή/Νομός/Πόλη"
+                      placeholder="Νομός/Δήμος/Πόλη"
                       value={newCustomer.citys || ""}
                       onChange={(e) =>
                         setNewCustomer({
@@ -776,19 +782,22 @@ function CustomerForm({
                   </div>
 
                   <div className="form-field">
-                    <label className="field-label">Μέσο Παραλαβής</label>
-                    <input
-                      type="text"
-                      className="form-input"
-                      placeholder="Μέσο Παραλαβής"
-                      value={newCustomer.transport_methods || ""}
-                      onChange={(e) =>
-                        setNewCustomer({
-                          ...newCustomer,
-                          transport_methods: e.target.value,
-                        })
-                      }
-                    />
+                    <label className="field-label">Μέσο Μεταφοράς</label>
+                    <select
+    className="form-select"
+    value={newCustomer.transport_method || ""}
+    onChange={(e) =>
+      setNewCustomer({
+        ...newCustomer,
+        transport_method: e.target.value,
+      })
+    }
+  >
+    <option value="">Επιλέξτε Μέσο Μεταφοράς</option>
+    <option value="Φορείο">Φορείο</option>
+    <option value="Καρέκλα">Καρέκλα</option>
+    <option value="Scoop">Scoop</option>
+  </select>
                   </div>
 
                   <div className="form-field">
@@ -850,8 +859,9 @@ function CustomerForm({
                 </div>
               </div>
             )}
+    </div>
 
-            <div className="form-section">
+    <div className="form-section">
               <h3 className="section-title">Στοιχεία Πελάτη</h3>
               <div className="form-grid">
                 <div className="form-field">
@@ -896,7 +906,7 @@ function CustomerForm({
                     onChange={(e) =>
                       setNewCustomer({
                         ...newCustomer,
-                        phone_1: e.target.value,
+                        phone_1: e.target.value.trim(),
                       })
                     }
                   />
@@ -959,9 +969,11 @@ function CustomerForm({
                   />
                 </div>
               </div>
-            </div>
+           
+    </div>
 
-            <div className="form-section">
+   
+    <div className="form-section">
               <h3 className="section-title">Είδος Συμβάντος/Αιτιολογία</h3>
               <select
                 className="form-select"
@@ -976,12 +988,38 @@ function CustomerForm({
                 <option value="">Επιλέξτε</option>
                 <option value="Επείγον">Επείγον</option>
                 <option value="Επανεξέταση">Επανεξέταση</option>
-                <option value="Χημειοθεραπεία">Χημειοθεραπεία</option>
+                <option value="Αιμοκάθαρση/Μετάγγιση">Αιμοκάθαρση/Μετάγγιση</option>
+                <option value="Αξονική/Μαγνητική">Αξονική/Μαγνητική</option>
+                <option value="Petscan">Petscan</option>
+                <option value="Εξιτήριο">Εξιτήριο</option>
+                <option value="Επείγον">Επείγον</option>
+                <option value="Επιστροφή οίκοι">Επιστροφή οίκοι</option>
+                <option value="Covid">Covid</option>
+                <option value="Εισαγωγή">Εισαγωγή</option>
               </select>
             </div>
+  </div>
 
-            <div className="form-section">
-              <h3 className="section-title">Επιλογή Τοποθεσίας</h3>
+  {/* Δεύτερο τεταρτημόριο (πάνω δεξιά) */}
+  <div className="top-right-section">
+    <div className="cost-container">
+      <div className="cost-box">
+        <h3 className="cost-title">Υπολογισμένο Κόστος</h3>
+        <div className="cost-value">{calculatedCost} €</div>
+      </div>
+      <div className="cost-box">
+        <h3 className="cost-title">Υπολογισμένο Κόστος + ΦΠΑ</h3>
+        <div className="cost-value">
+          {(calculatedCost + calculatedCost * 0.24).toFixed(2)} €
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {/* Τρίτο τεταρτημόριο (κάτω δεξιά) */}
+  <div className="bottom-right-section">
+  <div className="form-section">
+              <h3 className="section-title">Επιλογή Προορισμού</h3>
               <div className="radio-group">
                 <label className="radio-label">
                   <input
@@ -1014,9 +1052,7 @@ function CustomerForm({
                   Σπίτι
                 </label>
               </div>
-            </div>
-
-            {newCustomer.location_type === "Νοσοκομείο" && (
+              {newCustomer.location_type === "Νοσοκομείο" && (
               <div className="form-section hospital-section">
                 <h3 className="section-title">Στοιχεία Νοσοκομείου</h3>
                 <div className="form-grid">
@@ -1137,35 +1173,37 @@ function CustomerForm({
 
                   <div className="form-field">
                     <label className="field-label">Μέσο Μεταφοράς</label>
-                    <input
-                      type="text"
-                      className="form-input"
-                      placeholder="Μέσο Μεταφοράς"
-                      value={newCustomer.transport_method || ""}
-                      onChange={(e) =>
-                        setNewCustomer({
-                          ...newCustomer,
-                          transport_method: e.target.value,
-                        })
-                      }
-                    />
+                    <select
+    className="form-select"
+    value={newCustomer.transport_method || ""}
+    onChange={(e) =>
+      setNewCustomer({
+        ...newCustomer,
+        transport_method: e.target.value,
+      })
+    }
+  >
+    <option value="">Επιλέξτε Μέσο Μεταφοράς</option>
+    <option value="Φορείο">Φορείο</option>
+    <option value="Καρέκλα">Καρέκλα</option>
+    <option value="Scoop">Scoop</option>
+  </select>
                   </div>
                 </div>
               </div>
             )}
-
             {newCustomer.location_type === "Σπίτι" && (
               <div className="form-section home-section">
                 <h3 className="section-title">Στοιχεία Σπιτιού</h3>
                 <div className="form-grid">
                   <div className="form-field">
                     <label className="field-label">
-                      Δήμος/Περιοχή/Νομός/Πόλη
+                      Νομός/Δήμος/Πόλη
                     </label>
                     <input
                       type="text"
                       className="form-input"
-                      placeholder="Δήμος/Περιοχή/Νομός/Πόλη"
+                      placeholder="Νομός/Δήμος/Πόλη"
                       value={newCustomer.cityd || ""}
                       onChange={(e) =>
                         setNewCustomer({
@@ -1259,18 +1297,21 @@ function CustomerForm({
 
                   <div className="form-field">
                     <label className="field-label">Μέσο Μεταφοράς</label>
-                    <input
-                      type="text"
-                      className="form-input"
-                      placeholder="Μέσο Μεταφοράς"
-                      value={newCustomer.transport_methodd || ""}
-                      onChange={(e) =>
-                        setNewCustomer({
-                          ...newCustomer,
-                          transport_methodd: e.target.value,
-                        })
-                      }
-                    />
+                    <select
+    className="form-select"
+    value={newCustomer.transport_method || ""}
+    onChange={(e) =>
+      setNewCustomer({
+        ...newCustomer,
+        transport_method: e.target.value,
+      })
+    }
+  >
+    <option value="">Επιλέξτε Μέσο Μεταφοράς</option>
+    <option value="Φορείο">Φορείο</option>
+    <option value="Καρέκλα">Καρέκλα</option>
+    <option value="Scoop">Scoop</option>
+  </select>
                   </div>
 
                   <div className="form-field">
@@ -1332,11 +1373,15 @@ function CustomerForm({
                 </div>
               </div>
             )}
+            </div>
+  </div>
 
-            <button type="submit" className="submit-button">
+  <button type="submit" className="submit-button">
               Αποθήκευση Δεδομένων
             </button>
-          </form>
+</form>
+      
+         
         </div>
       </div>
       {savedCustomer && (

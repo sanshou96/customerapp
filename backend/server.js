@@ -13,6 +13,11 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+function removeDiacritics(str) {
+  return str
+    .normalize('NFD') // Διαχωρίζει τα γράμματα από τους τόνους
+    .replace(/[\u0300-\u036f]/g, ''); // Αφαιρεί τους τόνους
+}
 // Search customer by phone number
 app.get('/api/customer', (req, res) => {
  
@@ -247,15 +252,13 @@ app.post('/api/customer', async (req, res) => {
             console.error('Error updating customer:', err.message);
             return res.status(500).json({ error: 'Failed to update customer' });
           }
-          console.log(updatedInfo);
-          console.log(row.info);
           console.log('Customer updated successfully');
         });
       } else {
         // Insert new customer
         try {
           customerId = await insertCustomer(req.body);
-          console.log('Customer added successfully with ID:', customerId);
+         
         } catch (error) {
           console.error('Error inserting customer:', error.message);
           return res.status(500).json({ error: 'Failed to insert customer' });
@@ -354,7 +357,6 @@ app.get('/api/customer-history/:customerId', async (req, res) => {
   const { customerId } = req.params;
 
   try {
-    console.log('Fetching history for customer ID:', customerId); // Καταγραφή του customerId
 
     const query = `
       SELECT ch.*, 
@@ -389,7 +391,7 @@ app.get('/api/customer-history/:customerId', async (req, res) => {
       ORDER BY ch.id DESC;
     `;
 
-    console.log('Executing query:', query); // Καταγραφή του query
+    
 
     db.all(query, [customerId], (err, rows) => {
       if (err) {
@@ -397,7 +399,6 @@ app.get('/api/customer-history/:customerId', async (req, res) => {
         return res.status(500).json({ error: 'Failed to fetch customer history' });
       }
 
-      console.log('Query result:', rows); // Καταγραφή των αποτελεσμάτων
       res.json(rows);
     });
   } catch (error) {
@@ -444,46 +445,50 @@ app.get('/api/counters', (req, res) => {
 });
 
 app.get('/api/customers', (req, res) => {
-    const { phoneNumber, firstName, lastName } = req.query;
-  
-    let query = 'SELECT * FROM Customer WHERE 1=1';
-    const params = [];
-  
-    if (phoneNumber) {
+  const { phoneNumber, firstName, lastName } = req.query;
+
+  console.log('Received query parameters:', { phoneNumber, firstName, lastName });
+
+  let query = 'SELECT * FROM Customer WHERE 1=1';
+  const params = [];
+
+  if (phoneNumber) {
       query += ' AND phone_1 = ?';
       params.push(phoneNumber);
-    }
-    if (firstName && lastName) {
-      query += ' AND first_name = ? AND last_name = ?';
-      params.push(firstName, lastName);
-    }
-  
-    db.get(query, params, (err, row) => {
+      console.log('Query updated for phoneNumber:', query, params);
+  }
+
+  db.all(query, params, (err, rows) => {
       if (err) {
-        console.error(err.message);
-        res.status(500).send('Error fetching customer');
+          console.error('Database error:', err.message);
+          return res.status(500).send('Error fetching customer');
+      }
+
+      console.log('Database rows fetched:', rows);
+
+      if (firstName && lastName) {
+          // Normalize and filter results in Node.js
+          const normalizedFirstName = removeDiacritics(firstName.toLowerCase());
+          const normalizedLastName = removeDiacritics(lastName.toLowerCase());
+
+          console.log('Normalized search terms:', { normalizedFirstName, normalizedLastName });
+
+          const filteredRows = rows.filter(row => {
+              const dbFirstName = removeDiacritics(row.first_name.toLowerCase());
+              const dbLastName = removeDiacritics(row.last_name.toLowerCase());
+              console.log('Comparing:', { dbFirstName, dbLastName });
+              return dbFirstName === normalizedFirstName && dbLastName === normalizedLastName;
+          });
+
+          console.log('Filtered rows:', filteredRows);
+          res.json({ customers: filteredRows });
       } else {
-        res.json({ customer: row });
+          console.log('Returning all rows:', rows);
+          res.json({ customers: rows });
       }
-    });
   });
-  app.get('/api/customers', (req, res) => {
-    const { firstName, lastName } = req.query;
-  
-    const query = `SELECT * FROM Customer WHERE first_name = ? AND last_name = ?`;
-    db.get(query, [firstName, lastName], (err, row) => {
-      if (err) {
-        console.error('Error fetching customer:', err.message);
-        return res.status(500).json({ error: 'Failed to fetch customer' });
-      }
-  
-      if (row) {
-        res.json({ customer: row });
-      } else {
-        res.status(404).json({ message: 'Customer not found' });
-      }
-    });
-  });
+});
+
 // Close the database connection when the server shuts down
 process.on('SIGINT', () => {
   db.close((err) => {
