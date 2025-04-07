@@ -47,9 +47,9 @@ app.post('/api/customer', async (req, res) => {
       oxygen_usage, transport_method, transport_methods, transport_methodd,
       citys, cityd, streets, streetd, numbers, numberd, floors, floord,
       doorbells, doorbelld, has_elevators, has_elevatord, postal_codes,
-      postal_coded, has_o2s, has_o2d, code, is_starting_point, incident_type
+      postal_coded, has_o2s, has_o2d, code, is_starting_point, incident_type,additionalCost
     } = req.body;
-   let cost = 50;
+    let cost = additionalCost || 0; // Χρησιμοποιούμε την τιμή του additionalCost
    let fpa = 0;
 
     // Helper functions for database operations
@@ -240,7 +240,7 @@ app.post('/api/customer', async (req, res) => {
       if (row) {
         // Update existing customer
         customerId = row.id;
-        const updatedInfo = row.info ? `${row.info},${info}` : info; // Συνένωση του υπάρχοντος info με το νέο
+        const updatedInfo = info
         const updateCustomerQuery = `
           UPDATE Customer
           SET phone_1 = ?, phone_2 = ?, phone_3 = ?, weight = ?, info = ?
@@ -447,15 +447,13 @@ app.get('/api/counters', (req, res) => {
 app.get('/api/customers', (req, res) => {
   const { phoneNumber, firstName, lastName } = req.query;
 
-  console.log('Received query parameters:', { phoneNumber, firstName, lastName });
-
   let query = 'SELECT * FROM Customer WHERE 1=1';
   const params = [];
 
   if (phoneNumber) {
       query += ' AND phone_1 = ?';
       params.push(phoneNumber);
-      console.log('Query updated for phoneNumber:', query, params);
+      
   }
 
   db.all(query, params, (err, rows) => {
@@ -464,14 +462,14 @@ app.get('/api/customers', (req, res) => {
           return res.status(500).send('Error fetching customer');
       }
 
-      console.log('Database rows fetched:', rows);
+     
 
       if (firstName && lastName) {
           // Normalize and filter results in Node.js
           const normalizedFirstName = removeDiacritics(firstName.toLowerCase());
           const normalizedLastName = removeDiacritics(lastName.toLowerCase());
 
-          console.log('Normalized search terms:', { normalizedFirstName, normalizedLastName });
+          
 
           const filteredRows = rows.filter(row => {
               const dbFirstName = removeDiacritics(row.first_name.toLowerCase());
@@ -480,7 +478,7 @@ app.get('/api/customers', (req, res) => {
               return dbFirstName === normalizedFirstName && dbLastName === normalizedLastName;
           });
 
-          console.log('Filtered rows:', filteredRows);
+          
           res.json({ customers: filteredRows });
       } else {
           console.log('Returning all rows:', rows);

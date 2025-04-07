@@ -50,30 +50,7 @@ function App() {
         }
     };
 
-    const handleSearch = async ({ phoneNumber, firstName, lastName }) => {
-        try {
-            setIsLoading(true);
-            setError('');
-            setCustomer(null);
-
-            const queryParams = new URLSearchParams();
-            if (phoneNumber) queryParams.append('phone', phoneNumber);
-            if (firstName) queryParams.append('firstName', firstName);
-            if (lastName) queryParams.append('lastName', lastName);
-
-            const response = await axios.get(`http://localhost:5000/api/customers?${queryParams.toString()}`);
-            if (response.data && response.data.length > 0) {
-                setCustomer(response.data[0]);
-            } else {
-                setError('Customer not found');
-            }
-        } catch (err) {
-            console.error('Error fetching customer:', err);
-            setError('Failed to fetch customer');
-        } finally {
-            setIsLoading(false);
-        }
-    };
+ 
 
     return (
         <div >

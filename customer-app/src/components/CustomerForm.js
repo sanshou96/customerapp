@@ -12,6 +12,42 @@ const fieldLabels = {
   weight: "Βάρος",
   // Προσθέστε και άλλα πεδία αν χρειάζεται
 };
+const initialCustomerState = {
+  first_name: "",
+  last_name: "",
+  phone_1: "",
+  phone_2: "",
+  phone_3: "",
+  weight: "",
+  info: "",
+  code: "",
+  hospital_name: "",
+  clinic_name: "",
+  building_name: "",
+  floor_number: "",
+  room_number: "",
+  oxygen_usage: null,
+  transport_method: "",
+  citys: "",
+  postal_codes: "",
+  streets: "",
+  numbers: "",
+  floors: null,
+  doorbells: "",
+  has_elevators: null,
+  has_o2s: null,
+  cityd: "",
+  postal_coded: "",
+  streetd: "",
+  numberd: "",
+  floord: null,
+  doorbelld: "",
+  has_elevatord: null,
+  has_o2d: null,
+  transport_methodd: "",
+  incident_type: "",
+  location_type: "",
+};
 // Δημιουργούμε ένα ξεχωριστό component για κάθε στοιχείο του ιστορικού
 function HistoryItem({ entry }) {
   const [showDetails, setShowDetails] = useState(false);
@@ -74,9 +110,9 @@ function HistoryItem({ entry }) {
     </>
   );
 
-  const startingPoint = entry.is_starting_point ? (
+  const startingPoint = entry.is_starting_point === 1 ? (
     formatHospitalDetails(entry)
-  ) : (
+  ) : entry.is_starting_point === 0 || entry.is_starting_point == null ? (
     <>
       <div>
         <span className="history-label" style={{ fontWeight: "bold" }}>
@@ -131,11 +167,13 @@ function HistoryItem({ entry }) {
         </span>
       </div>
     </>
+  ) : (
+    <span>Μη διαθέσιμα δεδομένα για την αφετηρία</span>
   );
 
-  const destinationPoint = !entry.is_starting_point ? (
+  const destinationPoint = entry.is_starting_point === 1 ? (
     formatHospitalDetails(entry)
-  ) : (
+  ) : entry.is_starting_point === 0 || entry.is_starting_point == null ? (
     <>
       <div>
         <span className="history-label" style={{ fontWeight: "bold" }}>
@@ -192,6 +230,8 @@ function HistoryItem({ entry }) {
         </span>
       </div>
     </>
+  ): (
+    <span>Μη διαθέσιμα δεδομένα για την αφετηρία</span>
   );
 
   return (
@@ -216,20 +256,20 @@ function HistoryItem({ entry }) {
         {showDetails && <div className="history-details">{startingPoint}</div>}
       </div>
       <div>
-        <span className="history-label" style={{ fontWeight: "bold" }}>
-          Προορισμός:
-        </span>{" "}
-        {!showDetails && (
-          <span>
-            {!entry.is_starting_point
-              ? entry.hospital_name
-              : entry.destination_city || "Μη διαθέσιμο"}
-          </span>
-        )}
-        {showDetails && (
-          <div className="history-details">{destinationPoint}</div>
-        )}
-      </div>
+  <span className="history-label" style={{ fontWeight: "bold" }}>
+    Προορισμός:
+  </span>{" "}
+  {!showDetails && (
+    <span>
+      {entry.is_starting_point === 0
+        ? entry.hospital_name || "Μη διαθέσιμο"
+        : entry.is_starting_point === 1 || entry.is_starting_point == null
+        ? entry.destination_city || "Μη διαθέσιμο"
+        : "Μη διαθέσιμα δεδομένα"}
+    </span>
+  )}
+  {showDetails && <div className="history-details">{destinationPoint}</div>}
+</div>
       <div>
         <span className="history-label" style={{ fontWeight: "bold" }}>
           Είδος Συμβάντος:
@@ -242,12 +282,7 @@ function HistoryItem({ entry }) {
         </span>{" "}
         <span>{entry.cost ? `${entry.cost} €` : "Μη διαθέσιμο"}</span>
       </div>
-      <div>
-        <span className="history-label" style={{ fontWeight: "bold" }}>
-          Κόστος:
-        </span>{" "}
-        <span>{entry.fpa ? `${entry.fpa} €` : "Μη διαθέσιμο"}</span>
-      </div>
+    
       <button
         onClick={() => setShowDetails(!showDetails)}
         style={{
@@ -269,11 +304,12 @@ function CustomerForm({
   addCustomer,
 }) {
   const [counters, setCounters] = useState({});
-  const [calculatedCost, setCalculatedCost] = useState(50);
+  const [calculatedCost, setCalculatedCost] = useState(0);
   const [savedCustomer, setSavedCustomer] = useState(null);
   const [customerHistory, setCustomerHistory] = useState([]);
   const [editingField, setEditingField] = useState(null); // Το πεδίο που επεξεργαζόμαστε
   const [editedValue, setEditedValue] = useState(""); // Η νέα τιμή του πεδίου
+  const [additionalCost, setAdditionalCost] = useState(0);
   const customerDetailsRef = useRef(null);
   const fetchCounters = () => {
     fetch("http://localhost:5000/api/counters")
@@ -294,7 +330,7 @@ function CustomerForm({
       const response = await axios.get(
         `http://localhost:5000/api/customer-history/${customerId}`,
       );
-      console.log("Customer History Response:", response.data); // Προσθέστε αυτό
+      
       if (response.data) {
         setCustomerHistory(response.data);
       }
@@ -303,10 +339,10 @@ function CustomerForm({
     }
   };
   useEffect(() => {
-    console.log("Customer History Updated:", customerHistory);
+   
   }, [customerHistory]);
   useEffect(() => {
-    console.log("Rendering with customerHistory:", customerHistory);
+    
   }, [customerHistory]);
   const updateCustomer = async (field, value) => {
     try {
@@ -355,50 +391,57 @@ function CustomerForm({
     }
   }, [savedCustomer]);
   useEffect(() => {
-    const baseCost = 50;
+    const baseCost = 0;
     const floorCost =
       (5 * newCustomer.floors || 0) * (newCustomer.has_elevators ? 0 : 1);
     const floordCost =
       (5 * newCustomer.floord || 0) * (newCustomer.has_elevatord ? 0 : 1);
-    const totalCost = baseCost + floorCost + floordCost;
+      const totalCost = baseCost + floorCost + floordCost + additionalCost; 
     setCalculatedCost(totalCost);
   }, [
     newCustomer.floors,
     newCustomer.floord,
     newCustomer.has_elevators,
     newCustomer.has_elevatord,
+    additionalCost,
   ]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
+  
     try {
-      // Ανάκτηση του υπάρχοντος πελάτη από το backend
+      // Ελέγξτε αν ο πελάτης υπάρχει ήδη στη βάση
       const response = await axios.get(`http://localhost:5000/api/customers`, {
         params: {
           firstName: newCustomer.first_name,
           lastName: newCustomer.last_name,
         },
       });
-
-      let existingInfo = "";
-      if (response.data && response.data.customer) {
-        existingInfo = response.data.customer.info || ""; // Ανάκτηση του υπάρχοντος info
+      
+      let updatedInfo = newCustomer.info; // Ξεκινάμε με το νέο info
+      let totalCost = calculatedCost + additionalCost;
+      if (response.data && response.data.customers && response.data.customers.length > 0) {
+        // Ο πελάτης υπάρχει ήδη
+        const existingCustomer = response.data.customers[0];
+        setSavedCustomer(existingCustomer); // Αποθήκευση του υπάρχοντος πελάτη στο state
+        fetchCustomerHistory(existingCustomer.id); // Ανάκτηση ιστορικού πελάτη
+  
+        // Συνένωση του υπάρχοντος info με το νέο
+        updatedInfo = existingCustomer.info
+          ? `${existingCustomer.info}, ${newCustomer.info}`
+          : newCustomer.info;
       }
-
-      // Συνένωση του υπάρχοντος info με το νέο
-      const updatedInfo = existingInfo
-        ? `${existingInfo}\n${newCustomer.info}`
-        : newCustomer.info;
-
+  
       const isStartingPoint = transferType === "Από Νοσοκομείο για Σπίτι";
-
+  
       const updatedCustomer = {
         ...newCustomer,
-        info: updatedInfo, // Ενημερωμένο info
+        info: updatedInfo, // Χρησιμοποιούμε το ενημερωμένο info
         is_starting_point: isStartingPoint,
+        cost: totalCost, // Προσθήκη συνολικού κόστους
+        additionalCost, // Προσθήκη του πρόσθετου κόστους
       };
-
+      console.log("Updated Customer:", updatedCustomer);
       // Αποθήκευση του πελάτη
       addCustomer(updatedCustomer, (response) => {
         if (response && response.counters) {
@@ -410,6 +453,8 @@ function CustomerForm({
         }
         fetchCounters();
         scrollToCustomerDetails();
+        setNewCustomer(initialCustomerState);
+        setAdditionalCost(0); // Επαναφορά του πρόσθετου κόστους
       });
     } catch (err) {
       console.error("Error fetching existing customer info:", err);
@@ -479,6 +524,7 @@ function CustomerForm({
         type="text"
         placeholder="Τηλέφωνο"
         value={newCustomer.phone_1 || ""}
+        maxLength={10} 
         onChange={(e) =>
           setNewCustomer({ ...newCustomer, phone_1: e.target.value.trim() })
         }
@@ -682,71 +728,70 @@ function CustomerForm({
               <div className="form-section home-section">
                 <h3 className="section-title">Στοιχεία Κατοικίας</h3>
                 <div className="form-grid">
-                  <div className="form-field">
-                    <label className="field-label">
-                    Νομός/Δήμος/Πόλη
-                    </label>
-                    <input
-                      type="text"
-                      className="form-input"
-                      placeholder="Νομός/Δήμος/Πόλη"
-                      value={newCustomer.citys || ""}
-                      onChange={(e) =>
-                        setNewCustomer({
-                          ...newCustomer,
-                          citys: e.target.value,
-                        })
-                      }
-                    />
-                  </div>
+                <div className="form-field">
+  <label className="field-label">Νομός/Δήμος/Πόλη</label>
+  <input
+    type="text"
+    className="form-input"
+    placeholder="Νομός/Δήμος/Πόλη"
+    value={newCustomer.citys || ""}
+    onChange={(e) => {
+      const value = e.target.value;
+      if (/^[Α-Ωα-ωΆ-Ώά-ώA-Za-z\s]*$/.test(value)) { // Επιτρέπει μόνο χαρακτήρες και κενά
+        setNewCustomer({ ...newCustomer, citys: value });
+      }
+    }}
+  />
+</div>
 
                   <div className="form-field">
-                    <label className="field-label">Τ/Κ</label>
-                    <input
-                      type="text"
-                      className="form-input"
-                      placeholder="Τ/Κ"
-                      value={newCustomer.postal_codes || ""}
-                      onChange={(e) =>
-                        setNewCustomer({
-                          ...newCustomer,
-                          postal_codes: e.target.value,
-                        })
-                      }
-                    />
-                  </div>
+  <label className="field-label">Τ/Κ</label>
+  <input
+    type="text"
+    className="form-input"
+    placeholder="Τ/Κ"
+    value={newCustomer.postal_codes || ""}
+    maxLength={5} 
+    onChange={(e) => {
+      const value = e.target.value;
+      if (/^\d*$/.test(value)) { // Επιτρέπει μόνο αριθμούς
+        setNewCustomer({ ...newCustomer, postal_codes: value });
+      }
+    }}
+  />
+</div>
 
-                  <div className="form-field">
-                    <label className="field-label">Οδός</label>
-                    <input
-                      type="text"
-                      className="form-input"
-                      placeholder="Οδός"
-                      value={newCustomer.streets || ""}
-                      onChange={(e) =>
-                        setNewCustomer({
-                          ...newCustomer,
-                          streets: e.target.value,
-                        })
-                      }
-                    />
-                  </div>
+<div className="form-field">
+  <label className="field-label">Οδός</label>
+  <input
+    type="text"
+    className="form-input"
+    placeholder="Οδός"
+    value={newCustomer.streets || ""}
+    onChange={(e) => {
+      const value = e.target.value;
+      if (/^[Α-Ωα-ωΆ-Ώά-ώA-Za-z\s]*$/.test(value)) { // Επιτρέπει μόνο χαρακτήρες και κενά
+        setNewCustomer({ ...newCustomer, streets: value });
+      }
+    }}
+  />
+</div>
 
-                  <div className="form-field">
-                    <label className="field-label">Αριθμός</label>
-                    <input
-                      type="text"
-                      className="form-input"
-                      placeholder="Αριθμός"
-                      value={newCustomer.numbers || ""}
-                      onChange={(e) =>
-                        setNewCustomer({
-                          ...newCustomer,
-                          numbers: e.target.value,
-                        })
-                      }
-                    />
-                  </div>
+<div className="form-field">
+  <label className="field-label">Αριθμός</label>
+  <input
+    type="text"
+    className="form-input"
+    placeholder="Αριθμός"
+    value={newCustomer.numbers || ""}
+    onChange={(e) => {
+      const value = e.target.value;
+      if (/^\d*$/.test(value)) { // Επιτρέπει μόνο αριθμούς
+        setNewCustomer({ ...newCustomer, numbers: value });
+      }
+    }}
+  />
+</div>
 
                   <div className="form-field">
                     <label className="field-label">Όροφος</label>
@@ -785,11 +830,11 @@ function CustomerForm({
                     <label className="field-label">Μέσο Μεταφοράς</label>
                     <select
     className="form-select"
-    value={newCustomer.transport_method || ""}
+    value={newCustomer.transport_methods || ""}
     onChange={(e) =>
       setNewCustomer({
         ...newCustomer,
-        transport_method: e.target.value,
+        transport_methods: e.target.value,
       })
     }
   >
@@ -864,52 +909,53 @@ function CustomerForm({
     <div className="form-section">
               <h3 className="section-title">Στοιχεία Πελάτη</h3>
               <div className="form-grid">
-                <div className="form-field">
-                  <label className="field-label">Όνομα</label>
-                  <input
-                    type="text"
-                    className="form-input"
-                    placeholder="Όνομα"
-                    value={newCustomer.first_name || ""}
-                    onChange={(e) =>
-                      setNewCustomer({
-                        ...newCustomer,
-                        first_name: e.target.value.trim(),
-                      })
-                    }
-                  />
-                </div>
+              <div className="form-field">
+  <label className="field-label">Όνομα</label>
+  <input
+    type="text"
+    className="form-input"
+    placeholder="Όνομα"
+    value={newCustomer.first_name || ""}
+    onChange={(e) => {
+      const value = e.target.value.trim();
+      if (/^[Α-Ωα-ωΆ-Ώά-ώA-Za-z\s]*$/.test(value)) { // Επιτρέπει μόνο χαρακτήρες και κενά
+        setNewCustomer({ ...newCustomer, first_name: value });
+      }
+    }}
+  />
+</div>
 
-                <div className="form-field">
-                  <label className="field-label">Επώνυμο</label>
-                  <input
-                    type="text"
-                    className="form-input"
-                    placeholder="Επώνυμο"
-                    value={newCustomer.last_name || ""}
-                    onChange={(e) =>
-                      setNewCustomer({
-                        ...newCustomer,
-                        last_name: e.target.value.trim(),
-                      })
-                    }
-                  />
-                </div>
+<div className="form-field">
+  <label className="field-label">Επώνυμο</label>
+  <input
+    type="text"
+    className="form-input"
+    placeholder="Επώνυμο"
+    value={newCustomer.last_name || ""}
+    onChange={(e) => {
+      const value = e.target.value.trim();
+      if (/^[Α-Ωα-ωΆ-Ώά-ώA-Za-z\s]*$/.test(value)) { // Επιτρέπει μόνο χαρακτήρες και κενά
+        setNewCustomer({ ...newCustomer, last_name: value });
+      }
+    }}
+  />
+</div>
 
                 <div className="form-field">
                   <label className="field-label">Τηλέφωνο 1</label>
                   <input
-                    type="text"
-                    className="form-input"
-                    placeholder="Τηλέφωνο 1"
-                    value={newCustomer.phone_1 || ""}
-                    onChange={(e) =>
-                      setNewCustomer({
-                        ...newCustomer,
-                        phone_1: e.target.value.trim(),
-                      })
-                    }
-                  />
+              type="text"
+              className="form-input"
+              placeholder="Τηλέφωνο 1"
+              value={newCustomer.phone_1 || ""}
+              maxLength={10} 
+              onChange={(e) => {
+               const value = e.target.value;
+               if (/^\d*$/.test(value)) { // Επιτρέπει μόνο αριθμούς
+                 setNewCustomer({ ...newCustomer, phone_1: value });
+                }
+  }}
+/>
                 </div>
 
                 <div className="form-field">
@@ -919,12 +965,13 @@ function CustomerForm({
                     className="form-input"
                     placeholder="Τηλέφωνο 2"
                     value={newCustomer.phone_2 || ""}
-                    onChange={(e) =>
-                      setNewCustomer({
-                        ...newCustomer,
-                        phone_2: e.target.value,
-                      })
-                    }
+                    maxLength={10} 
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      if (/^\d*$/.test(value)) { // Επιτρέπει μόνο αριθμούς
+                        setNewCustomer({ ...newCustomer, phone_2: value });
+                       }
+         }}
                   />
                 </div>
 
@@ -935,27 +982,32 @@ function CustomerForm({
                     className="form-input"
                     placeholder="Τηλέφωνο 3"
                     value={newCustomer.phone_3 || ""}
-                    onChange={(e) =>
-                      setNewCustomer({
-                        ...newCustomer,
-                        phone_3: e.target.value,
-                      })
-                    }
+                    maxLength={10} 
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      if (/^\d*$/.test(value)) { // Επιτρέπει μόνο αριθμούς
+                        setNewCustomer({ ...newCustomer, phone_3: value });
+                       }
+         }}
                   />
                 </div>
 
-                <div className="form-field">
-                  <label className="field-label">Βάρος</label>
-                  <input
-                    type="text"
-                    className="form-input"
-                    placeholder="Βάρος"
-                    value={newCustomer.weight || ""}
-                    onChange={(e) =>
-                      setNewCustomer({ ...newCustomer, weight: e.target.value })
-                    }
-                  />
-                </div>
+          
+<div className="form-field">
+  <label className="field-label">Βάρος</label>
+  <input
+    type="text"
+    className="form-input"
+    placeholder="Βάρος"
+    value={newCustomer.weight || ""}
+    onChange={(e) => {
+      const value = e.target.value;
+      if (/^\d*$/.test(value)) { // Επιτρέπει μόνο αριθμούς
+        setNewCustomer({ ...newCustomer, weight: value });
+      }
+    }}
+  />
+</div>
 
                 <div className="form-field wide-field">
                   <label className="field-label">Πληροφορίες</label>
@@ -1003,16 +1055,22 @@ function CustomerForm({
   {/* Δεύτερο τεταρτημόριο (πάνω δεξιά) */}
   <div className="top-right-section">
     <div className="cost-container">
+    <div className="cost-box">
+    <label className="cost-title" htmlFor="additional-cost-input">Κόστος</label>
+    <input
+      id="additional-cost-input"
+      type="text"
+      value={additionalCost}
+      onChange={(e) => setAdditionalCost(Number(e.target.value))}
+      placeholder="Εισάγετε επιπλέον κόστος"
+      style={{ marginLeft: "10px", padding: "5px", width: "100px" }}
+    />
+  </div>
       <div className="cost-box">
         <h3 className="cost-title">Υπολογισμένο Κόστος</h3>
         <div className="cost-value">{calculatedCost} €</div>
       </div>
-      <div className="cost-box">
-        <h3 className="cost-title">Υπολογισμένο Κόστος + ΦΠΑ</h3>
-        <div className="cost-value">
-          {(calculatedCost + calculatedCost * 0.24).toFixed(2)} €
-        </div>
-      </div>
+     
     </div>
   </div>
 
@@ -1196,71 +1254,70 @@ function CustomerForm({
               <div className="form-section home-section">
                 <h3 className="section-title">Στοιχεία Σπιτιού</h3>
                 <div className="form-grid">
-                  <div className="form-field">
-                    <label className="field-label">
-                      Νομός/Δήμος/Πόλη
-                    </label>
-                    <input
-                      type="text"
-                      className="form-input"
-                      placeholder="Νομός/Δήμος/Πόλη"
-                      value={newCustomer.cityd || ""}
-                      onChange={(e) =>
-                        setNewCustomer({
-                          ...newCustomer,
-                          cityd: e.target.value,
-                        })
-                      }
-                    />
-                  </div>
+                <div className="form-field">
+  <label className="field-label">Νομός/Δήμος/Πόλη</label>
+  <input
+    type="text"
+    className="form-input"
+    placeholder="Νομός/Δήμος/Πόλη"
+    value={newCustomer.cityd || ""}
+    onChange={(e) => {
+      const value = e.target.value;
+      if (/^[Α-Ωα-ωΆ-Ώά-ώA-Za-z\s]*$/.test(value)) { // Επιτρέπει μόνο χαρακτήρες και κενά
+        setNewCustomer({ ...newCustomer, cityd: value });
+      }
+    }}
+  />
+</div>
 
                   <div className="form-field">
-                    <label className="field-label">Τ/Κ</label>
-                    <input
-                      type="text"
-                      className="form-input"
-                      placeholder="Τ/Κ"
-                      value={newCustomer.postal_coded || ""}
-                      onChange={(e) =>
-                        setNewCustomer({
-                          ...newCustomer,
-                          postal_coded: e.target.value,
-                        })
-                      }
-                    />
-                  </div>
+  <label className="field-label">Τ/Κ</label>
+  <input
+    type="text"
+    className="form-input"
+    placeholder="Τ/Κ"
+    value={newCustomer.postal_coded || ""}
+    maxLength={5} 
+    onChange={(e) => {
+      const value = e.target.value;
+      if (/^\d*$/.test(value)) { // Επιτρέπει μόνο αριθμούς
+        setNewCustomer({ ...newCustomer, postal_coded: value });
+      }
+    }}
+  />
+</div>
 
-                  <div className="form-field">
-                    <label className="field-label">Οδός</label>
-                    <input
-                      type="text"
-                      className="form-input"
-                      placeholder="Οδός"
-                      value={newCustomer.streetd || ""}
-                      onChange={(e) =>
-                        setNewCustomer({
-                          ...newCustomer,
-                          streetd: e.target.value,
-                        })
-                      }
-                    />
-                  </div>
+<div className="form-field">
+  <label className="field-label">Οδός</label>
+  <input
+    type="text"
+    className="form-input"
+    placeholder="Οδός"
+    value={newCustomer.streetd || ""}
+    onChange={(e) => {
+      const value = e.target.value;
+      if (/^[Α-Ωα-ωΆ-Ώά-ώA-Za-z\s]*$/.test(value)) { // Επιτρέπει μόνο χαρακτήρες και κενά
+        setNewCustomer({ ...newCustomer, streetd: value });
+      }
+    }}
+  />
+</div>
 
-                  <div className="form-field">
-                    <label className="field-label">Αριθμός</label>
-                    <input
-                      type="text"
-                      className="form-input"
-                      placeholder="Αριθμός"
-                      value={newCustomer.numberd || ""}
-                      onChange={(e) =>
-                        setNewCustomer({
-                          ...newCustomer,
-                          numberd: e.target.value,
-                        })
-                      }
-                    />
-                  </div>
+<div className="form-field">
+  <label className="field-label">Αριθμός</label>
+  <input
+    type="text"
+    className="form-input"
+    placeholder="Αριθμός"
+    value={newCustomer.numberd || ""}
+    onChange={(e) => {
+      const value = e.target.value;
+      if (/^\d*$/.test(value)) { // Επιτρέπει μόνο αριθμούς
+        setNewCustomer({ ...newCustomer, numberd: value });
+      }
+    }}
+  />
+</div>
 
                   <div className="form-field">
                     <label className="field-label">Όροφος</label>
@@ -1299,11 +1356,11 @@ function CustomerForm({
                     <label className="field-label">Μέσο Μεταφοράς</label>
                     <select
     className="form-select"
-    value={newCustomer.transport_method || ""}
+    value={newCustomer.transport_methodd || ""}
     onChange={(e) =>
       setNewCustomer({
         ...newCustomer,
-        transport_method: e.target.value,
+        transport_methodd: e.target.value,
       })
     }
   >
@@ -1414,7 +1471,7 @@ function CustomerForm({
                         <input
                           type="text"
                           value={editedValue}
-                          onChange={(e) => setEditedValue(e.target.value)}
+                          onChange={(e) => setEditedValue(e.target.value.trim())}
                           style={{ padding: "5px", width: "150px" }}
                         />
                       </form>
