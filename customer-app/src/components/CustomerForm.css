@@ -252,7 +252,7 @@
     word-wrap: break-word;
   }
   .customer-container {
-    max-width: 1800px;
+    max-width: auto;
     margin: 0 auto;
     padding: 10px;
     background-color: #f9f9f9;
@@ -559,6 +559,20 @@
   }
   button:hover {
     background-color: #cc0000;
+  }
+  table {
+    border-collapse: collapse;
+    width: 100%;
+  }
+  
+  table th, table td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: center;
+  }
+  
+  table th {
+    background-color: #f2f2f2;
   }
   /* Responsive settings */
   @media (max-width: 768px) {

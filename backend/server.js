@@ -50,7 +50,7 @@ app.post('/api/customer', async (req, res) => {
       postal_coded, has_o2s, has_o2d, code, is_starting_point, incident_type,additionalCost
     } = req.body;
     let cost = additionalCost || 0; // Χρησιμοποιούμε την τιμή του additionalCost
-   let fpa = 0;
+   
 
     // Helper functions for database operations
     function insertCustomer(data) {
@@ -177,12 +177,12 @@ app.post('/api/customer', async (req, res) => {
       }
 }
    
-    function insertCustomerHistory(customer_id, hospital_id, destination_id, starting_point_id, cost,fpa, incident_type) {
+    function insertCustomerHistory(customer_id, hospital_id, destination_id, starting_point_id, cost, incident_type) {
        
         return new Promise((resolve, reject) => {
           const query = `
-            INSERT INTO CustomerHistory (customer_id, hospital_id, destination_id, starting_point_id, cost,fpa, incident_type)
-            VALUES (?, ?, ?, ?, ?, ?,?)
+            INSERT INTO CustomerHistory (customer_id, hospital_id, destination_id, starting_point_id, cost, incident_type)
+            VALUES (?, ?, ?, ?, ?, ?)
           `;
           db.run(query, [
             customer_id || null,
@@ -190,7 +190,6 @@ app.post('/api/customer', async (req, res) => {
             destination_id || null,
             starting_point_id || null,
             cost, 
-            fpa,
             incident_type || null
           ], function(err) {
             if (err) {
@@ -283,7 +282,7 @@ app.post('/api/customer', async (req, res) => {
         const starting_point_id = startingPointId.id || null;
         
 
-        if (customerId || hospitalId || startingPointId || destinationId || cost || fpa) {
+        if (customerId || hospitalId || startingPointId || destinationId || cost ) {
             if (destinationId && destinationId.has_elevatord === 0 && destinationId.floord != 'undefined') {
                 cost += ((destinationId.floord || 0) * 5);
                
@@ -294,7 +293,7 @@ app.post('/api/customer', async (req, res) => {
                 cost += (5 * (startingPointId.floors || 0));
                 
             }
-           fpa = cost+cost * 0.24;
+           
           try {
             historyId = await insertCustomerHistory(
               customer_id, 
@@ -302,7 +301,7 @@ app.post('/api/customer', async (req, res) => {
               destination_id, 
               starting_point_id, 
               cost, 
-              fpa,
+             
               incident_type
             );
       
@@ -380,8 +379,8 @@ app.get('/api/customer-history/:customerId', async (req, res) => {
              COALESCE(d.doorbelld, '') as destination_doorbell,
              COALESCE(sp.doorbells, '') as starting_doorbell,
              COALESCE(d.transport_methodd, h.transport_method) as destination_transport_method,
-             COALESCE(d.has_o2d, h.oxygen_usage) as destination_oxygen_usage,
-             ch.fpa -- Προσθήκη του FPA
+             COALESCE(d.has_o2d, h.oxygen_usage) as destination_oxygen_usage
+             
       FROM CustomerHistory ch
       LEFT JOIN Customer c ON ch.customer_id = c.id
       LEFT JOIN Hospital h ON ch.hospital_id = h.id
@@ -486,7 +485,93 @@ app.get('/api/customers', (req, res) => {
       }
   });
 });
+const cron = require('node-cron');
 
+// Cron job για μηδενισμό counters κάθε 1η του μήνα στις 00:00
+cron.schedule('0 0 1 * *', async () => {
+  console.log('Executing monthly counters reset...');
+
+  try {
+    // Αποθήκευση του τρέχοντος μήνα και έτους
+    const now = new Date();
+    const month = now.toLocaleString('default', { month: 'long' });
+    const year = now.getFullYear();
+
+    // Ανάκτηση των τρεχόντων counters
+    const fetchCountersQuery = `SELECT "166c", "153c", "011c", "1600c" FROM Counters`;
+    db.get(fetchCountersQuery, async (err, row) => {
+      if (err) {
+        console.error('Error fetching counters:', err.message);
+        return;
+      }
+
+      // Αποθήκευση στο ιστορικό
+      const insertHistoryQuery = `
+        INSERT INTO CountersHistory (month, year, "166c", "153c", "011c", "1600c")
+        VALUES (?, ?, ?, ?, ?, ?)
+      `;
+      db.run(insertHistoryQuery, [month, year, row["166c"], row["153c"], row["011c"], row["1600c"]], (err) => {
+        if (err) {
+          console.error('Error inserting counters history:', err.message);
+          return;
+        }
+        console.log('Counters history saved successfully.');
+
+        // Μηδενισμός των counters
+        const resetCountersQuery = `
+          UPDATE Counters
+          SET "166c" = 0, "153c" = 0, "011c" = 0, "1600c" = 0
+        `;
+        db.run(resetCountersQuery, (err) => {
+          if (err) {
+            console.error('Error resetting counters:', err.message);
+            return;
+          }
+          console.log('Counters reset successfully.');
+        });
+      });
+    });
+  } catch (error) {
+    console.error('Error during monthly counters reset:', error.message);
+  }
+});
+app.get('/api/counters-history', (req, res) => {
+  const query = `SELECT * FROM CountersHistory ORDER BY created_at DESC`;
+
+  db.all(query, (err, rows) => {
+    if (err) {
+      console.error('Error fetching counters history:', err.message);
+      return res.status(500).json({ error: 'Failed to fetch counters history' });
+    }
+    res.json(rows);
+  });
+});
+// Endpoint για την ανάκτηση των νοσοκομείων
+app.get("/api/hospitals", (req, res) => {
+  const query = "SELECT name FROM hospitalList ORDER BY name ASC";
+  db.all(query, [], (err, rows) => {
+    if (err) {
+      console.error("Error fetching hospitals:", err.message);
+      res.status(500).json({ error: "Failed to fetch hospitals" });
+    } else {
+      res.json(rows);
+    }
+  });
+});
+app.post("/api/hospitals", (req, res) => {
+  const { name } = req.body;
+  if (!name) {
+    return res.status(400).json({ error: "Name is required" });
+  }
+  const query = "INSERT INTO hospitalList (name) VALUES (?)";
+  db.run(query, [name], function (err) {
+    if (err) {
+      console.error("Error adding hospital:", err.message);
+      return res.status(500).json({ error: "Failed to add hospital" });
+    }
+    res.status(201).json({ id: this.lastID, name });
+  });
+});
 // Close the database connection when the server shuts down
 process.on('SIGINT', () => {
   db.close((err) => {

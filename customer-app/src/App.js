@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import CustomerForm from './components/CustomerForm';
-import CustomerSearch from './components/CustomerSearch';
+import CountersHistory from './components/CountersHistory';
 import axios from 'axios';
 
 function App() {
@@ -50,8 +50,8 @@ function App() {
         }
     };
 
- 
-
+    
+    
     return (
         <div >
             
@@ -67,8 +67,12 @@ function App() {
                 counters={counters}
                 customer={customer} // Περάστε τον πελάτη που βρέθηκε
             />
+            
+            <CountersHistory />
         </div>
+         
     );
+  
 }
 
 export default App;

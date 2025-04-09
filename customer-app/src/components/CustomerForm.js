@@ -2,6 +2,9 @@
 import { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import "./CustomerForm.css";
+import CountersHistory from './CountersHistory';
+import ClinicDropdown from "./ClinicDropdown";
+import HospitalDropdown from "./HospitalDropdown";
 const fieldLabels = {
   first_name: "Όνομα",
   last_name: "Επώνυμο",
@@ -171,9 +174,9 @@ function HistoryItem({ entry }) {
     <span>Μη διαθέσιμα δεδομένα για την αφετηρία</span>
   );
 
-  const destinationPoint = entry.is_starting_point === 1 ? (
+  const destinationPoint = entry.is_starting_point === 0 ? (
     formatHospitalDetails(entry)
-  ) : entry.is_starting_point === 0 || entry.is_starting_point == null ? (
+  ) : entry.is_starting_point === 1 || entry.is_starting_point == null ? (
     <>
       <div>
         <span className="history-label" style={{ fontWeight: "bold" }}>
@@ -588,39 +591,12 @@ function CustomerForm({
                 <h3 className="section-title">Στοιχεία Νοσοκομείου</h3>
                 <div className="form-grid">
                   <div className="form-field">
-                    <label className="field-label">Νοσοκομείο</label>
-                    <select
-                      className="form-select"
-                      value={newCustomer.hospital_name || ""}
-                      onChange={(e) =>
-                        setNewCustomer({
-                          ...newCustomer,
-                          hospital_name: e.target.value,
-                        })
-                      }
-                    >
-                      <option value="">Επιλέξτε Νοσοκομείο</option>
-                      <option value="Νοσοκομείο Α">Νοσοκομείο Α</option>
-                      <option value="Νοσοκομείο Β">Νοσοκομείο Β</option>
-                    </select>
+                  <HospitalDropdown newCustomer={newCustomer} setNewCustomer={setNewCustomer} />
                   </div>
 
                   <div className="form-field">
-                    <label className="field-label">Κλινική</label>
-                    <select
-                      className="form-select"
-                      value={newCustomer.clinic_name || ""}
-                      onChange={(e) =>
-                        setNewCustomer({
-                          ...newCustomer,
-                          clinic_name: e.target.value,
-                        })
-                      }
-                    >
-                      <option value="">Επιλέξτε Κλινική</option>
-                      <option value="Κλινική Α">Κλινική Α</option>
-                      <option value="Κλινική Β">Κλινική Β</option>
-                    </select>
+                    
+                    <ClinicDropdown newCustomer={newCustomer} setNewCustomer={setNewCustomer} />
                   </div>
 
                   <div className="form-field">
@@ -1115,39 +1091,12 @@ function CustomerForm({
                 <h3 className="section-title">Στοιχεία Νοσοκομείου</h3>
                 <div className="form-grid">
                   <div className="form-field">
-                    <label className="field-label">Νοσοκομείο</label>
-                    <select
-                      className="form-select"
-                      value={newCustomer.hospital_name || ""}
-                      onChange={(e) =>
-                        setNewCustomer({
-                          ...newCustomer,
-                          hospital_name: e.target.value,
-                        })
-                      }
-                    >
-                      <option value="">Επιλέξτε Νοσοκομείο</option>
-                      <option value="Νοσοκομείο Α">Νοσοκομείο Α</option>
-                      <option value="Νοσοκομείο Β">Νοσοκομείο Β</option>
-                    </select>
+                  <HospitalDropdown newCustomer={newCustomer} setNewCustomer={setNewCustomer} />
                   </div>
 
                   <div className="form-field">
-                    <label className="field-label">Κλινική</label>
-                    <select
-                      className="form-select"
-                      value={newCustomer.clinic_name || ""}
-                      onChange={(e) =>
-                        setNewCustomer({
-                          ...newCustomer,
-                          clinic_name: e.target.value,
-                        })
-                      }
-                    >
-                      <option value="">Επιλέξτε Κλινική</option>
-                      <option value="Κλινική Α">Κλινική Α</option>
-                      <option value="Κλινική Β">Κλινική Β</option>
-                    </select>
+                    
+                    <ClinicDropdown newCustomer={newCustomer} setNewCustomer={setNewCustomer} />
                   </div>
 
                   <div className="form-field">
@@ -1494,7 +1443,7 @@ function CustomerForm({
                             fontSize: "12px",
                           }}
                         >
-                          Save
+                          Αποθήκευση
                         </button>
                         <button
                           type="button"
@@ -1505,7 +1454,7 @@ function CustomerForm({
                             fontSize: "12px",
                           }}
                         >
-                          Cancel
+                          Ακύρωση
                         </button>
                       </>
                     ) : (
@@ -1520,7 +1469,7 @@ function CustomerForm({
                           fontSize: "12px",
                         }}
                       >
-                        Edit
+                        Επεξεργασία
                       </button>
                     )}
                   </div>
@@ -1542,6 +1491,7 @@ function CustomerForm({
       )}
     </div>
   );
+  
 }
 
 export default CustomerForm;
