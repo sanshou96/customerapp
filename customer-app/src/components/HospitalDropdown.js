@@ -26,7 +26,7 @@ function HospitalDropdown({ newCustomer, setNewCustomer }) {
 
   // Φιλτράρισμα των νοσοκομείων με βάση το search term
   const filteredHospitals = hospitals.filter((hospital) =>
-    hospital.toLowerCase().includes(searchTerm.toLowerCase())
+    hospital.toLowerCase().includes(searchTerm.toLowerCase()),
   );
 
   // Αποθήκευση νέου νοσοκομείου στη βάση δεδομένων
@@ -124,7 +124,6 @@ function HospitalDropdown({ newCustomer, setNewCustomer }) {
           <button
             type="button" // Αποφυγή υποβολής φόρμας
             style={{
-              
               color: "white",
               border: "none",
               padding: "5px 10px",

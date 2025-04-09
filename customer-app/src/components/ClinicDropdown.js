@@ -20,7 +20,7 @@ function ClinicDropdown({ newCustomer, setNewCustomer }) {
 
   // Φιλτράρισμα των κλινικών με βάση το search term
   const filteredClinics = clinics.filter((clinic) =>
-    clinic.toLowerCase().includes(searchTerm.toLowerCase())
+    clinic.toLowerCase().includes(searchTerm.toLowerCase()),
   );
 
   return (

@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import axios from 'axios';
+import React, { useState } from "react";
+import axios from "axios";
 
 function CountersHistory() {
   const [history, setHistory] = useState([]);
@@ -9,11 +9,13 @@ function CountersHistory() {
   const fetchCountersHistory = async () => {
     setLoading(true);
     try {
-      const response = await axios.get('http://localhost:5000/api/counters-history');
+      const response = await axios.get(
+        "http://localhost:5000/api/counters-history",
+      );
       setHistory(response.data);
       setShowHistory(true);
     } catch (error) {
-      console.error('Error fetching counters history:', error.message);
+      console.error("Error fetching counters history:", error.message);
     } finally {
       setLoading(false);
     }
@@ -24,14 +26,22 @@ function CountersHistory() {
   };
 
   return (
-    <div style={{ textAlign: 'center', marginTop: '20px', marginBottom: '50px' }}>
-      <h1 style={{ marginBottom: '20px' }}>Διαχείριση Counters</h1>
+    <div
+      style={{ textAlign: "center", marginTop: "20px", marginBottom: "50px" }}
+    >
+      <h1 style={{ marginBottom: "20px" }}>Διαχείριση Counters</h1>
       {!showHistory ? (
-        <button onClick={fetchCountersHistory} style={{ padding: '10px', margin: '10px' }}>
+        <button
+          onClick={fetchCountersHistory}
+          style={{ padding: "10px", margin: "10px" }}
+        >
           Εμφάνιση Ιστορικού Counters
         </button>
       ) : (
-        <button onClick={toggleHistory} style={{ padding: '10px', margin: '10px' }}>
+        <button
+          onClick={toggleHistory}
+          style={{ padding: "10px", margin: "10px" }}
+        >
           Απόκρυψη Ιστορικού Counters
         </button>
       )}
@@ -39,27 +49,33 @@ function CountersHistory() {
       {loading && <p>Φόρτωση...</p>}
 
       {showHistory && history.length > 0 && (
-        <div style={{ display: 'flex', justifyContent: 'center', marginTop: '20px' }}>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "center",
+            marginTop: "20px",
+          }}
+        >
           <table
             style={{
-              marginTop: '20px',
-              maxWidth: '800px',
-              width: '100%',
-              borderCollapse: 'collapse',
-              boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
-              borderRadius: '8px',
-              overflow: 'hidden',
+              marginTop: "20px",
+              maxWidth: "800px",
+              width: "100%",
+              borderCollapse: "collapse",
+              boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
+              borderRadius: "8px",
+              overflow: "hidden",
             }}
           >
             <thead>
-              <tr style={{ backgroundColor: '#007bff',  textAlign: 'center' }}>
-                <th style={{ padding: '10px' }}>Μήνας</th>
-                <th style={{ padding: '10px' }}>Έτος</th>
-                <th style={{ padding: '10px' }}>166c</th>
-                <th style={{ padding: '10px' }}>153c</th>
-                <th style={{ padding: '10px' }}>011c</th>
-                <th style={{ padding: '10px' }}>1600c</th>
-                <th style={{ padding: '10px' }}>Ημερομηνία Δημιουργίας</th>
+              <tr style={{ backgroundColor: "#007bff", textAlign: "center" }}>
+                <th style={{ padding: "10px" }}>Μήνας</th>
+                <th style={{ padding: "10px" }}>Έτος</th>
+                <th style={{ padding: "10px" }}>166c</th>
+                <th style={{ padding: "10px" }}>153c</th>
+                <th style={{ padding: "10px" }}>011c</th>
+                <th style={{ padding: "10px" }}>1600c</th>
+                <th style={{ padding: "10px" }}>Ημερομηνία Δημιουργίας</th>
               </tr>
             </thead>
             <tbody>
@@ -67,17 +83,19 @@ function CountersHistory() {
                 <tr
                   key={index}
                   style={{
-                    backgroundColor: index % 2 === 0 ? '#f9f9f9' : '#ffffff',
-                    textAlign: 'center',
+                    backgroundColor: index % 2 === 0 ? "#f9f9f9" : "#ffffff",
+                    textAlign: "center",
                   }}
                 >
-                  <td style={{ padding: '10px' }}>{entry.month}</td>
-                  <td style={{ padding: '10px' }}>{entry.year}</td>
-                  <td style={{ padding: '10px' }}>{entry["166c"]}</td>
-                  <td style={{ padding: '10px' }}>{entry["153c"]}</td>
-                  <td style={{ padding: '10px' }}>{entry["011c"]}</td>
-                  <td style={{ padding: '10px' }}>{entry["1600c"]}</td>
-                  <td style={{ padding: '10px' }}>{new Date(entry.created_at).toLocaleString()}</td>
+                  <td style={{ padding: "10px" }}>{entry.month}</td>
+                  <td style={{ padding: "10px" }}>{entry.year}</td>
+                  <td style={{ padding: "10px" }}>{entry["166c"]}</td>
+                  <td style={{ padding: "10px" }}>{entry["153c"]}</td>
+                  <td style={{ padding: "10px" }}>{entry["011c"]}</td>
+                  <td style={{ padding: "10px" }}>{entry["1600c"]}</td>
+                  <td style={{ padding: "10px" }}>
+                    {new Date(entry.created_at).toLocaleString()}
+                  </td>
                 </tr>
               ))}
             </tbody>

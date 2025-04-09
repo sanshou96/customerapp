@@ -2,7 +2,7 @@
 import { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import "./CustomerForm.css";
-import CountersHistory from './CountersHistory';
+import CountersHistory from "./CountersHistory";
 import ClinicDropdown from "./ClinicDropdown";
 import HospitalDropdown from "./HospitalDropdown";
 const fieldLabels = {
@@ -113,129 +113,135 @@ function HistoryItem({ entry }) {
     </>
   );
 
-  const startingPoint = entry.is_starting_point === 1 ? (
-    formatHospitalDetails(entry)
-  ) : entry.is_starting_point === 0 || entry.is_starting_point == null ? (
-    <>
-      <div>
-        <span className="history-label" style={{ fontWeight: "bold" }}>
-          Πόλη:
-        </span>{" "}
-        <span>{entry.starting_city || "Μη διαθέσιμο"}</span>
-      </div>
-      <div>
-        <span className="history-label" style={{ fontWeight: "bold" }}>
-          Οδός:
-        </span>{" "}
-        <span>{entry.starting_street || "Μη διαθέσιμο"}</span>
-      </div>
-      <div>
-        <span className="history-label" style={{ fontWeight: "bold" }}>
-          Αριθμός:
-        </span>{" "}
-        <span>{entry.starting_number || "Μη διαθέσιμο"}</span>
-      </div>
-      <div>
-        <span className="history-label" style={{ fontWeight: "bold" }}>
-          Τ/Κ:
-        </span>{" "}
-        <span>{entry.starting_postal_code || "Μη διαθέσιμο"}</span>
-      </div>
-      <div>
-        <span className="history-label" style={{ fontWeight: "bold" }}>
-          Όροφος:
-        </span>{" "}
-        <span>
-          {entry.starting_floor ? `${entry.starting_floor}ος` : "Μη διαθέσιμο"}
-        </span>
-      </div>
-      <div>
-        <span className="history-label" style={{ fontWeight: "bold" }}>
-          Ασανσέρ:
-        </span>{" "}
-        <span>{Number(entry.starting_elevator) === 1 ? "Ναι" : "Όχι"}</span>
-      </div>
-      <div>
-        <span className="history-label" style={{ fontWeight: "bold" }}>
-          Μέσο Μεταφοράς:
-        </span>{" "}
-        <span>{entry.starting_transport_method || "Μη διαθέσιμο"}</span>
-      </div>
-      <div>
-        <span className="history-label" style={{ fontWeight: "bold" }}>
-          Χρήση Οξυγόνου:
-        </span>{" "}
-        <span>
-          {parseInt(entry.starting_oxygen_usage, 10) === 1 ? "Ναι" : "Όχι"}
-        </span>
-      </div>
-    </>
-  ) : (
-    <span>Μη διαθέσιμα δεδομένα για την αφετηρία</span>
-  );
+  const startingPoint =
+    entry.is_starting_point === 1 ? (
+      formatHospitalDetails(entry)
+    ) : entry.is_starting_point === 0 || entry.is_starting_point == null ? (
+      <>
+        <div>
+          <span className="history-label" style={{ fontWeight: "bold" }}>
+            Πόλη:
+          </span>{" "}
+          <span>{entry.starting_city || "Μη διαθέσιμο"}</span>
+        </div>
+        <div>
+          <span className="history-label" style={{ fontWeight: "bold" }}>
+            Οδός:
+          </span>{" "}
+          <span>{entry.starting_street || "Μη διαθέσιμο"}</span>
+        </div>
+        <div>
+          <span className="history-label" style={{ fontWeight: "bold" }}>
+            Αριθμός:
+          </span>{" "}
+          <span>{entry.starting_number || "Μη διαθέσιμο"}</span>
+        </div>
+        <div>
+          <span className="history-label" style={{ fontWeight: "bold" }}>
+            Τ/Κ:
+          </span>{" "}
+          <span>{entry.starting_postal_code || "Μη διαθέσιμο"}</span>
+        </div>
+        <div>
+          <span className="history-label" style={{ fontWeight: "bold" }}>
+            Όροφος:
+          </span>{" "}
+          <span>
+            {entry.starting_floor
+              ? `${entry.starting_floor}ος`
+              : "Μη διαθέσιμο"}
+          </span>
+        </div>
+        <div>
+          <span className="history-label" style={{ fontWeight: "bold" }}>
+            Ασανσέρ:
+          </span>{" "}
+          <span>{Number(entry.starting_elevator) === 1 ? "Ναι" : "Όχι"}</span>
+        </div>
+        <div>
+          <span className="history-label" style={{ fontWeight: "bold" }}>
+            Μέσο Μεταφοράς:
+          </span>{" "}
+          <span>{entry.starting_transport_method || "Μη διαθέσιμο"}</span>
+        </div>
+        <div>
+          <span className="history-label" style={{ fontWeight: "bold" }}>
+            Χρήση Οξυγόνου:
+          </span>{" "}
+          <span>
+            {parseInt(entry.starting_oxygen_usage, 10) === 1 ? "Ναι" : "Όχι"}
+          </span>
+        </div>
+      </>
+    ) : (
+      <span>Μη διαθέσιμα δεδομένα για την αφετηρία</span>
+    );
 
-  const destinationPoint = entry.is_starting_point === 0 ? (
-    formatHospitalDetails(entry)
-  ) : entry.is_starting_point === 1 || entry.is_starting_point == null ? (
-    <>
-      <div>
-        <span className="history-label" style={{ fontWeight: "bold" }}>
-          Πόλη:
-        </span>{" "}
-        <span>{entry.destination_city || "Μη διαθέσιμο"}</span>
-      </div>
-      <div>
-        <span className="history-label" style={{ fontWeight: "bold" }}>
-          Οδός:
-        </span>{" "}
-        <span>{entry.destination_street || "Μη διαθέσιμο"}</span>
-      </div>
-      <div>
-        <span className="history-label" style={{ fontWeight: "bold" }}>
-          Αριθμός:
-        </span>{" "}
-        <span>{entry.destination_number || "Μη διαθέσιμο"}</span>
-      </div>
-      <div>
-        <span className="history-label" style={{ fontWeight: "bold" }}>
-          Τ/Κ:
-        </span>{" "}
-        <span>{entry.destination_postal_code || "Μη διαθέσιμο"}</span>
-      </div>
-      <div>
-        <span className="history-label" style={{ fontWeight: "bold" }}>
-          Όροφος:
-        </span>{" "}
-        <span>
-          {entry.destination_floor
-            ? `${entry.destination_floor}ος`
-            : "Μη διαθέσιμο"}
-        </span>
-      </div>
-      <div>
-        <span className="history-label" style={{ fontWeight: "bold" }}>
-          Ασανσέρ:
-        </span>{" "}
-        <span>{Number(entry.destination_elevator) === 1 ? "Ναι" : "Όχι"}</span>
-      </div>
-      <div>
-        <span className="history-label" style={{ fontWeight: "bold" }}>
-          Μέσο Μεταφοράς:
-        </span>{" "}
-        <span>{entry.destination_transport_method || "Μη διαθέσιμο"}</span>
-      </div>
-      <div>
-        <span className="history-label" style={{ fontWeight: "bold" }}>
-          Χρήση Οξυγόνου:
-        </span>{" "}
-        <span>
-          {parseInt(entry.destination_oxygen_usage, 10) === 1 ? "Ναι" : "Όχι"}
-        </span>
-      </div>
-    </>
-  ): (
-    <span>Μη διαθέσιμα δεδομένα για την αφετηρία</span>
-  );
+  const destinationPoint =
+    entry.is_starting_point === 0 ? (
+      formatHospitalDetails(entry)
+    ) : entry.is_starting_point === 1 || entry.is_starting_point == null ? (
+      <>
+        <div>
+          <span className="history-label" style={{ fontWeight: "bold" }}>
+            Πόλη:
+          </span>{" "}
+          <span>{entry.destination_city || "Μη διαθέσιμο"}</span>
+        </div>
+        <div>
+          <span className="history-label" style={{ fontWeight: "bold" }}>
+            Οδός:
+          </span>{" "}
+          <span>{entry.destination_street || "Μη διαθέσιμο"}</span>
+        </div>
+        <div>
+          <span className="history-label" style={{ fontWeight: "bold" }}>
+            Αριθμός:
+          </span>{" "}
+          <span>{entry.destination_number || "Μη διαθέσιμο"}</span>
+        </div>
+        <div>
+          <span className="history-label" style={{ fontWeight: "bold" }}>
+            Τ/Κ:
+          </span>{" "}
+          <span>{entry.destination_postal_code || "Μη διαθέσιμο"}</span>
+        </div>
+        <div>
+          <span className="history-label" style={{ fontWeight: "bold" }}>
+            Όροφος:
+          </span>{" "}
+          <span>
+            {entry.destination_floor
+              ? `${entry.destination_floor}ος`
+              : "Μη διαθέσιμο"}
+          </span>
+        </div>
+        <div>
+          <span className="history-label" style={{ fontWeight: "bold" }}>
+            Ασανσέρ:
+          </span>{" "}
+          <span>
+            {Number(entry.destination_elevator) === 1 ? "Ναι" : "Όχι"}
+          </span>
+        </div>
+        <div>
+          <span className="history-label" style={{ fontWeight: "bold" }}>
+            Μέσο Μεταφοράς:
+          </span>{" "}
+          <span>{entry.destination_transport_method || "Μη διαθέσιμο"}</span>
+        </div>
+        <div>
+          <span className="history-label" style={{ fontWeight: "bold" }}>
+            Χρήση Οξυγόνου:
+          </span>{" "}
+          <span>
+            {parseInt(entry.destination_oxygen_usage, 10) === 1 ? "Ναι" : "Όχι"}
+          </span>
+        </div>
+      </>
+    ) : (
+      <span>Μη διαθέσιμα δεδομένα για την αφετηρία</span>
+    );
 
   return (
     <div className="history-item">
@@ -259,20 +265,22 @@ function HistoryItem({ entry }) {
         {showDetails && <div className="history-details">{startingPoint}</div>}
       </div>
       <div>
-  <span className="history-label" style={{ fontWeight: "bold" }}>
-    Προορισμός:
-  </span>{" "}
-  {!showDetails && (
-    <span>
-      {entry.is_starting_point === 0
-        ? entry.hospital_name || "Μη διαθέσιμο"
-        : entry.is_starting_point === 1 || entry.is_starting_point == null
-        ? entry.destination_city || "Μη διαθέσιμο"
-        : "Μη διαθέσιμα δεδομένα"}
-    </span>
-  )}
-  {showDetails && <div className="history-details">{destinationPoint}</div>}
-</div>
+        <span className="history-label" style={{ fontWeight: "bold" }}>
+          Προορισμός:
+        </span>{" "}
+        {!showDetails && (
+          <span>
+            {entry.is_starting_point === 0
+              ? entry.hospital_name || "Μη διαθέσιμο"
+              : entry.is_starting_point === 1 || entry.is_starting_point == null
+                ? entry.destination_city || "Μη διαθέσιμο"
+                : "Μη διαθέσιμα δεδομένα"}
+          </span>
+        )}
+        {showDetails && (
+          <div className="history-details">{destinationPoint}</div>
+        )}
+      </div>
       <div>
         <span className="history-label" style={{ fontWeight: "bold" }}>
           Είδος Συμβάντος:
@@ -285,7 +293,7 @@ function HistoryItem({ entry }) {
         </span>{" "}
         <span>{entry.cost ? `${entry.cost} €` : "Μη διαθέσιμο"}</span>
       </div>
-    
+
       <button
         onClick={() => setShowDetails(!showDetails)}
         style={{
@@ -333,7 +341,7 @@ function CustomerForm({
       const response = await axios.get(
         `http://localhost:5000/api/customer-history/${customerId}`,
       );
-      
+
       if (response.data) {
         setCustomerHistory(response.data);
       }
@@ -341,12 +349,8 @@ function CustomerForm({
       console.error("Error fetching customer history:", err);
     }
   };
-  useEffect(() => {
-   
-  }, [customerHistory]);
-  useEffect(() => {
-    
-  }, [customerHistory]);
+  useEffect(() => {}, [customerHistory]);
+  useEffect(() => {}, [customerHistory]);
   const updateCustomer = async (field, value) => {
     try {
       // Κλήση API για ενημέρωση στη βάση δεδομένων
@@ -374,7 +378,11 @@ function CustomerForm({
       const response = await axios.get(`http://localhost:5000/api/customers`, {
         params: searchCriteria,
       });
-      if (response.data && response.data.customers && response.data.customers.length > 0) {
+      if (
+        response.data &&
+        response.data.customers &&
+        response.data.customers.length > 0
+      ) {
         setSavedCustomer(response.data.customers[0]); // Αποθήκευση του πρώτου πελάτη που βρέθηκε
         fetchCustomerHistory(response.data.customers[0].id); // Ανάκτηση ιστορικού
       } else {
@@ -399,7 +407,7 @@ function CustomerForm({
       (5 * newCustomer.floors || 0) * (newCustomer.has_elevators ? 0 : 1);
     const floordCost =
       (5 * newCustomer.floord || 0) * (newCustomer.has_elevatord ? 0 : 1);
-      const totalCost = baseCost + floorCost + floordCost + additionalCost; 
+    const totalCost = baseCost + floorCost + floordCost + additionalCost;
     setCalculatedCost(totalCost);
   }, [
     newCustomer.floors,
@@ -411,7 +419,7 @@ function CustomerForm({
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-  
+
     try {
       // Ελέγξτε αν ο πελάτης υπάρχει ήδη στη βάση
       const response = await axios.get(`http://localhost:5000/api/customers`, {
@@ -420,23 +428,27 @@ function CustomerForm({
           lastName: newCustomer.last_name,
         },
       });
-      
+
       let updatedInfo = newCustomer.info; // Ξεκινάμε με το νέο info
       let totalCost = calculatedCost + additionalCost;
-      if (response.data && response.data.customers && response.data.customers.length > 0) {
+      if (
+        response.data &&
+        response.data.customers &&
+        response.data.customers.length > 0
+      ) {
         // Ο πελάτης υπάρχει ήδη
         const existingCustomer = response.data.customers[0];
         setSavedCustomer(existingCustomer); // Αποθήκευση του υπάρχοντος πελάτη στο state
         fetchCustomerHistory(existingCustomer.id); // Ανάκτηση ιστορικού πελάτη
-  
+
         // Συνένωση του υπάρχοντος info με το νέο
         updatedInfo = existingCustomer.info
           ? `${existingCustomer.info}, ${newCustomer.info}`
           : newCustomer.info;
       }
-  
+
       const isStartingPoint = transferType === "Από Νοσοκομείο για Σπίτι";
-  
+
       const updatedCustomer = {
         ...newCustomer,
         info: updatedInfo, // Χρησιμοποιούμε το ενημερωμένο info
@@ -472,922 +484,980 @@ function CustomerForm({
 
   return (
     <div className="customer-container">
-  <div className="counters-and-search">
-  <div className="counters-container">
-    <div className="counters-grid">
-      <div className="counter-box">
-        <h4 className="counter-title">166</h4>
-        <p className="counter-value">{counters["166c"] || 0}</p>
-      </div>
-      <div className="counter-box">
-        <h4 className="counter-title">153</h4>
-        <p className="counter-value">{counters["153c"] || 0}</p>
-      </div>
-      <div className="counter-box">
-        <h4 className="counter-title">011</h4>
-        <p className="counter-value">{counters["011c"] || 0}</p>
-      </div>
-      <div className="counter-box">
-        <h4 className="counter-title">1600</h4>
-        <p className="counter-value">{counters["1600c"] || 0}</p>
-      </div>
-    </div>
-  </div>
+      <div className="counters-and-search">
+        <div className="counters-container">
+          <div className="counters-grid">
+            <div className="counter-box">
+              <h4 className="counter-title">166</h4>
+              <p className="counter-value">{counters["166c"] || 0}</p>
+            </div>
+            <div className="counter-box">
+              <h4 className="counter-title">153</h4>
+              <p className="counter-value">{counters["153c"] || 0}</p>
+            </div>
+            <div className="counter-box">
+              <h4 className="counter-title">011</h4>
+              <p className="counter-value">{counters["011c"] || 0}</p>
+            </div>
+            <div className="counter-box">
+              <h4 className="counter-title">1600</h4>
+              <p className="counter-value">{counters["1600c"] || 0}</p>
+            </div>
+          </div>
+        </div>
 
-  <form
-    onSubmit={(e) => {
-      e.preventDefault();
-      handleSearchSubmit({
-        phoneNumber: newCustomer.phone_1,
-        firstName: newCustomer.first_name,
-        lastName: newCustomer.last_name,
-      });
-    }}
-    className="search-form"
-  >
-    <p>Είσαγεται το τηλέφωνο ή το ονοματεπώνυμο</p>
-    <div className="input-group">
-      <input
-        type="text"
-        placeholder="Όνομα"
-        value={newCustomer.first_name || ""}
-        onChange={(e) =>
-          setNewCustomer({ ...newCustomer, first_name: e.target.value.trim() })
-        }
-      />
-      <input
-        type="text"
-        placeholder="Επώνυμο"
-        value={newCustomer.last_name || ""}
-        onChange={(e) =>
-          setNewCustomer({ ...newCustomer, last_name: e.target.value.trim() })
-        }
-      />
-      <input
-        type="text"
-        placeholder="Τηλέφωνο"
-        value={newCustomer.phone_1 || ""}
-        maxLength={10} 
-        onChange={(e) =>
-          setNewCustomer({ ...newCustomer, phone_1: e.target.value.trim() })
-        }
-      />
-      <button type="submit">Αναζήτηση</button>
-    </div>
-    
-  </form>
-</div>
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            handleSearchSubmit({
+              phoneNumber: newCustomer.phone_1,
+              firstName: newCustomer.first_name,
+              lastName: newCustomer.last_name,
+            });
+          }}
+          className="search-form"
+        >
+          <p>Είσαγεται το τηλέφωνο ή το ονοματεπώνυμο</p>
+          <div className="input-group">
+            <input
+              type="text"
+              placeholder="Όνομα"
+              value={newCustomer.first_name || ""}
+              onChange={(e) =>
+                setNewCustomer({
+                  ...newCustomer,
+                  first_name: e.target.value.trim(),
+                })
+              }
+            />
+            <input
+              type="text"
+              placeholder="Επώνυμο"
+              value={newCustomer.last_name || ""}
+              onChange={(e) =>
+                setNewCustomer({
+                  ...newCustomer,
+                  last_name: e.target.value.trim(),
+                })
+              }
+            />
+            <input
+              type="text"
+              placeholder="Τηλέφωνο"
+              value={newCustomer.phone_1 || ""}
+              maxLength={10}
+              onChange={(e) =>
+                setNewCustomer({
+                  ...newCustomer,
+                  phone_1: e.target.value.trim(),
+                })
+              }
+            />
+            <button type="submit">Αναζήτηση</button>
+          </div>
+        </form>
+      </div>
       <div className="customer-card">
         <div className="customer-content">
-          
-        <form onSubmit={handleSubmit} className="main-grid">
-  {/* Πρώτο τεταρτημόριο (πάνω και κάτω αριστερά) */}
-  <div className="left-section">
-  <div className="form-section">
-              <h3 className="section-title">Επιλογή Πηγής</h3>
-              <select
-                className="form-select"
-                value={newCustomer.code || ""}
-                onChange={(e) =>
-                  setNewCustomer({ ...newCustomer, code: e.target.value })
-                }
-              >
-                <option value="">Πηγή</option>
-                <option value="166">166</option>
-                <option value="153">153</option>
-                <option value="011">011</option>
-                <option value="1600">1600</option>
-              </select>
-            </div>
-            <div className="form-section">
-              <h3 className="section-title">Στοιχεία παραλαβής</h3>
-              <div className="radio-group">
-                <label className="radio-label">
-                  <input
-                    type="radio"
-                    className="radio-input"
-                    value="Από Νοσοκομείο για Σπίτι"
-                    checked={transferType === "Από Νοσοκομείο για Σπίτι"}
-                    onChange={(e) => setTransferType(e.target.value)}
-                  />
-                  Από Νοσοκομείο για Σπίτι
-                </label>
-                <label className="radio-label">
-                  <input
-                    type="radio"
-                    className="radio-input"
-                    value="Από Σπίτι σε Νοσοκομείο/Σπίτι"
-                    checked={transferType === "Από Σπίτι σε Νοσοκομείο/Σπίτι"}
-                    onChange={(e) => setTransferType(e.target.value)}
-                  />
-                  Από Σπίτι σε Νοσοκομείο/Σπίτι
-                </label>
+          <form onSubmit={handleSubmit} className="main-grid">
+            {/* Πρώτο τεταρτημόριο (πάνω και κάτω αριστερά) */}
+            <div className="left-section">
+              <div className="form-section">
+                <h3 className="section-title">Επιλογή Πηγής</h3>
+                <select
+                  className="form-select"
+                  value={newCustomer.code || ""}
+                  onChange={(e) =>
+                    setNewCustomer({ ...newCustomer, code: e.target.value })
+                  }
+                >
+                  <option value="">Πηγή</option>
+                  <option value="166">166</option>
+                  <option value="153">153</option>
+                  <option value="011">011</option>
+                  <option value="1600">1600</option>
+                </select>
               </div>
-            </div>
-    <div className="form-section">
-      
-      {transferType === "Από Νοσοκομείο για Σπίτι" && (
-              <div className="form-section hospital-section">
-                <h3 className="section-title">Στοιχεία Νοσοκομείου</h3>
+              <div className="form-section">
+                <h3 className="section-title">Στοιχεία παραλαβής</h3>
+                <div className="radio-group">
+                  <label className="radio-label">
+                    <input
+                      type="radio"
+                      className="radio-input"
+                      value="Από Νοσοκομείο για Σπίτι"
+                      checked={transferType === "Από Νοσοκομείο για Σπίτι"}
+                      onChange={(e) => setTransferType(e.target.value)}
+                    />
+                    Από Νοσοκομείο για Σπίτι
+                  </label>
+                  <label className="radio-label">
+                    <input
+                      type="radio"
+                      className="radio-input"
+                      value="Από Σπίτι σε Νοσοκομείο/Σπίτι"
+                      checked={transferType === "Από Σπίτι σε Νοσοκομείο/Σπίτι"}
+                      onChange={(e) => setTransferType(e.target.value)}
+                    />
+                    Από Σπίτι σε Νοσοκομείο/Σπίτι
+                  </label>
+                </div>
+              </div>
+              <div className="form-section">
+                {transferType === "Από Νοσοκομείο για Σπίτι" && (
+                  <div className="form-section hospital-section">
+                    <h3 className="section-title">Στοιχεία Νοσοκομείου</h3>
+                    <div className="form-grid">
+                      <div className="form-field">
+                        <HospitalDropdown
+                          newCustomer={newCustomer}
+                          setNewCustomer={setNewCustomer}
+                        />
+                      </div>
+
+                      <div className="form-field">
+                        <ClinicDropdown
+                          newCustomer={newCustomer}
+                          setNewCustomer={setNewCustomer}
+                        />
+                      </div>
+
+                      <div className="form-field">
+                        <label className="field-label">Κτήριο</label>
+                        <input
+                          type="text"
+                          className="form-input"
+                          placeholder="Κτήριο"
+                          value={newCustomer.building_name || ""}
+                          onChange={(e) =>
+                            setNewCustomer({
+                              ...newCustomer,
+                              building_name: e.target.value,
+                            })
+                          }
+                        />
+                      </div>
+
+                      <div className="form-field">
+                        <label className="field-label">Όροφος</label>
+                        <select
+                          className="form-select"
+                          value={newCustomer.floor_number || ""}
+                          onChange={(e) =>
+                            setNewCustomer({
+                              ...newCustomer,
+                              floor_number: e.target.value,
+                            })
+                          }
+                        >
+                          <option value="">Επιλέξτε Όροφο</option>
+                          {floorOptions}
+                        </select>
+                      </div>
+
+                      <div className="form-field">
+                        <label className="field-label">Δωμάτιο</label>
+                        <input
+                          type="text"
+                          className="form-input"
+                          placeholder="Δωμάτιο"
+                          value={newCustomer.room_number || ""}
+                          onChange={(e) =>
+                            setNewCustomer({
+                              ...newCustomer,
+                              room_number: e.target.value,
+                            })
+                          }
+                        />
+                      </div>
+
+                      <div className="form-field">
+                        <label className="field-label">Χρήση Οξυγόνου</label>
+                        <select
+                          className="form-select"
+                          value={
+                            newCustomer.oxygen_usage === true
+                              ? "Ναι"
+                              : newCustomer.oxygen_usage === false
+                                ? "Όχι"
+                                : ""
+                          }
+                          onChange={(e) => {
+                            const boolValue =
+                              e.target.value === "Ναι"
+                                ? true
+                                : e.target.value === "Όχι"
+                                  ? false
+                                  : null;
+                            setNewCustomer({
+                              ...newCustomer,
+                              oxygen_usage: boolValue,
+                            });
+                          }}
+                        >
+                          <option value="">Επιλέξτε</option>
+                          <option value="Ναι">Ναι</option>
+                          <option value="Όχι">Όχι</option>
+                        </select>
+                      </div>
+
+                      <div className="form-field">
+                        <label className="field-label">Μέσο Μεταφοράς</label>
+                        <select
+                          className="form-select"
+                          value={newCustomer.transport_method || ""}
+                          onChange={(e) =>
+                            setNewCustomer({
+                              ...newCustomer,
+                              transport_method: e.target.value,
+                            })
+                          }
+                        >
+                          <option value="">Επιλέξτε Μέσο Μεταφοράς</option>
+                          <option value="Φορείο">Φορείο</option>
+                          <option value="Καρέκλα">Καρέκλα</option>
+                          <option value="Scoop">Scoop</option>
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {transferType === "Από Σπίτι σε Νοσοκομείο/Σπίτι" && (
+                  <div className="form-section home-section">
+                    <h3 className="section-title">Στοιχεία Κατοικίας</h3>
+                    <div className="form-grid">
+                      <div className="form-field">
+                        <label className="field-label">Νομός/Δήμος/Πόλη</label>
+                        <input
+                          type="text"
+                          className="form-input"
+                          placeholder="Νομός/Δήμος/Πόλη"
+                          value={newCustomer.citys || ""}
+                          onChange={(e) => {
+                            const value = e.target.value;
+                            if (/^[Α-Ωα-ωΆ-Ώά-ώA-Za-z\s]*$/.test(value)) {
+                              // Επιτρέπει μόνο χαρακτήρες και κενά
+                              setNewCustomer({ ...newCustomer, citys: value });
+                            }
+                          }}
+                        />
+                      </div>
+
+                      <div className="form-field">
+                        <label className="field-label">Τ/Κ</label>
+                        <input
+                          type="text"
+                          className="form-input"
+                          placeholder="Τ/Κ"
+                          value={newCustomer.postal_codes || ""}
+                          maxLength={5}
+                          onChange={(e) => {
+                            const value = e.target.value;
+                            if (/^\d*$/.test(value)) {
+                              // Επιτρέπει μόνο αριθμούς
+                              setNewCustomer({
+                                ...newCustomer,
+                                postal_codes: value,
+                              });
+                            }
+                          }}
+                        />
+                      </div>
+
+                      <div className="form-field">
+                        <label className="field-label">Οδός</label>
+                        <input
+                          type="text"
+                          className="form-input"
+                          placeholder="Οδός"
+                          value={newCustomer.streets || ""}
+                          onChange={(e) => {
+                            const value = e.target.value;
+                            if (/^[Α-Ωα-ωΆ-Ώά-ώA-Za-z\s]*$/.test(value)) {
+                              // Επιτρέπει μόνο χαρακτήρες και κενά
+                              setNewCustomer({
+                                ...newCustomer,
+                                streets: value,
+                              });
+                            }
+                          }}
+                        />
+                      </div>
+
+                      <div className="form-field">
+                        <label className="field-label">Αριθμός</label>
+                        <input
+                          type="text"
+                          className="form-input"
+                          placeholder="Αριθμός"
+                          value={newCustomer.numbers || ""}
+                          onChange={(e) => {
+                            const value = e.target.value;
+                            if (/^\d*$/.test(value)) {
+                              // Επιτρέπει μόνο αριθμούς
+                              setNewCustomer({
+                                ...newCustomer,
+                                numbers: value,
+                              });
+                            }
+                          }}
+                        />
+                      </div>
+
+                      <div className="form-field">
+                        <label className="field-label">Όροφος</label>
+                        <select
+                          className="form-select"
+                          value={newCustomer.floors?.toString() || ""}
+                          onChange={(e) =>
+                            setNewCustomer({
+                              ...newCustomer,
+                              floors:
+                                Number.parseInt(e.target.value, 10) || null,
+                            })
+                          }
+                        >
+                          <option value="">Επιλέξτε Όροφο</option>
+                          {floorOptions}
+                        </select>
+                      </div>
+
+                      <div className="form-field">
+                        <label className="field-label">Κουδούνι</label>
+                        <input
+                          type="text"
+                          className="form-input"
+                          placeholder="Κουδούνι"
+                          value={newCustomer.doorbells || ""}
+                          onChange={(e) =>
+                            setNewCustomer({
+                              ...newCustomer,
+                              doorbells: e.target.value,
+                            })
+                          }
+                        />
+                      </div>
+
+                      <div className="form-field">
+                        <label className="field-label">Μέσο Μεταφοράς</label>
+                        <select
+                          className="form-select"
+                          value={newCustomer.transport_methods || ""}
+                          onChange={(e) =>
+                            setNewCustomer({
+                              ...newCustomer,
+                              transport_methods: e.target.value,
+                            })
+                          }
+                        >
+                          <option value="">Επιλέξτε Μέσο Μεταφοράς</option>
+                          <option value="Φορείο">Φορείο</option>
+                          <option value="Καρέκλα">Καρέκλα</option>
+                          <option value="Scoop">Scoop</option>
+                        </select>
+                      </div>
+
+                      <div className="form-field">
+                        <label className="field-label">Ασανσέρ</label>
+                        <select
+                          className="form-select"
+                          value={
+                            newCustomer.has_elevators === true
+                              ? "Ναι"
+                              : newCustomer.has_elevators === false
+                                ? "Όχι"
+                                : ""
+                          }
+                          onChange={(e) => {
+                            const boolValue =
+                              e.target.value === "Ναι"
+                                ? true
+                                : e.target.value === "Όχι"
+                                  ? false
+                                  : null;
+                            setNewCustomer({
+                              ...newCustomer,
+                              has_elevators: boolValue,
+                            });
+                          }}
+                        >
+                          <option value="">Επιλέξτε</option>
+                          <option value="Ναι">Ναι</option>
+                          <option value="Όχι">Όχι</option>
+                        </select>
+                      </div>
+
+                      <div className="form-field">
+                        <label className="field-label">Χρήση Οξυγόνου</label>
+                        <select
+                          className="form-select"
+                          value={
+                            newCustomer.has_o2s === true
+                              ? "Ναι"
+                              : newCustomer.has_o2s === false
+                                ? "Όχι"
+                                : ""
+                          }
+                          onChange={(e) => {
+                            const boolValue =
+                              e.target.value === "Ναι"
+                                ? true
+                                : e.target.value === "Όχι"
+                                  ? false
+                                  : null;
+                            setNewCustomer({
+                              ...newCustomer,
+                              has_o2s: boolValue,
+                            });
+                          }}
+                        >
+                          <option value="">Επιλέξτε</option>
+                          <option value="Ναι">Ναι</option>
+                          <option value="Όχι">Όχι</option>
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              <div className="form-section">
+                <h3 className="section-title">Στοιχεία Πελάτη</h3>
                 <div className="form-grid">
                   <div className="form-field">
-                  <HospitalDropdown newCustomer={newCustomer} setNewCustomer={setNewCustomer} />
-                  </div>
-
-                  <div className="form-field">
-                    
-                    <ClinicDropdown newCustomer={newCustomer} setNewCustomer={setNewCustomer} />
-                  </div>
-
-                  <div className="form-field">
-                    <label className="field-label">Κτήριο</label>
+                    <label className="field-label">Όνομα</label>
                     <input
                       type="text"
                       className="form-input"
-                      placeholder="Κτήριο"
-                      value={newCustomer.building_name || ""}
-                      onChange={(e) =>
-                        setNewCustomer({
-                          ...newCustomer,
-                          building_name: e.target.value,
-                        })
-                      }
-                    />
-                  </div>
-
-                  <div className="form-field">
-                    <label className="field-label">Όροφος</label>
-                    <select
-                      className="form-select"
-                      value={newCustomer.floor_number || ""}
-                      onChange={(e) =>
-                        setNewCustomer({
-                          ...newCustomer,
-                          floor_number: e.target.value,
-                        })
-                      }
-                    >
-                      <option value="">Επιλέξτε Όροφο</option>
-                      {floorOptions}
-                    </select>
-                  </div>
-
-                  <div className="form-field">
-                    <label className="field-label">Δωμάτιο</label>
-                    <input
-                      type="text"
-                      className="form-input"
-                      placeholder="Δωμάτιο"
-                      value={newCustomer.room_number || ""}
-                      onChange={(e) =>
-                        setNewCustomer({
-                          ...newCustomer,
-                          room_number: e.target.value,
-                        })
-                      }
-                    />
-                  </div>
-
-                  <div className="form-field">
-                    <label className="field-label">Χρήση Οξυγόνου</label>
-                    <select
-                      className="form-select"
-                      value={
-                        newCustomer.oxygen_usage === true
-                          ? "Ναι"
-                          : newCustomer.oxygen_usage === false
-                            ? "Όχι"
-                            : ""
-                      }
+                      placeholder="Όνομα"
+                      value={newCustomer.first_name || ""}
                       onChange={(e) => {
-                        const boolValue =
-                          e.target.value === "Ναι"
-                            ? true
-                            : e.target.value === "Όχι"
-                              ? false
-                              : null;
-                        setNewCustomer({
-                          ...newCustomer,
-                          oxygen_usage: boolValue,
-                        });
+                        const value = e.target.value.trim();
+                        if (/^[Α-Ωα-ωΆ-Ώά-ώA-Za-z\s]*$/.test(value)) {
+                          // Επιτρέπει μόνο χαρακτήρες και κενά
+                          setNewCustomer({ ...newCustomer, first_name: value });
+                        }
                       }}
-                    >
-                      <option value="">Επιλέξτε</option>
-                      <option value="Ναι">Ναι</option>
-                      <option value="Όχι">Όχι</option>
-                    </select>
+                    />
                   </div>
 
                   <div className="form-field">
-                    <label className="field-label">Μέσο Μεταφοράς</label>
-                    <select
-    className="form-select"
-    value={newCustomer.transport_method || ""}
-    onChange={(e) =>
-      setNewCustomer({
-        ...newCustomer,
-        transport_method: e.target.value,
-      })
-    }
-  >
-    <option value="">Επιλέξτε Μέσο Μεταφοράς</option>
-    <option value="Φορείο">Φορείο</option>
-    <option value="Καρέκλα">Καρέκλα</option>
-    <option value="Scoop">Scoop</option>
-  </select>
+                    <label className="field-label">Επώνυμο</label>
+                    <input
+                      type="text"
+                      className="form-input"
+                      placeholder="Επώνυμο"
+                      value={newCustomer.last_name || ""}
+                      onChange={(e) => {
+                        const value = e.target.value.trim();
+                        if (/^[Α-Ωα-ωΆ-Ώά-ώA-Za-z\s]*$/.test(value)) {
+                          // Επιτρέπει μόνο χαρακτήρες και κενά
+                          setNewCustomer({ ...newCustomer, last_name: value });
+                        }
+                      }}
+                    />
+                  </div>
+
+                  <div className="form-field">
+                    <label className="field-label">Τηλέφωνο 1</label>
+                    <input
+                      type="text"
+                      className="form-input"
+                      placeholder="Τηλέφωνο 1"
+                      value={newCustomer.phone_1 || ""}
+                      maxLength={10}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        if (/^\d*$/.test(value)) {
+                          // Επιτρέπει μόνο αριθμούς
+                          setNewCustomer({ ...newCustomer, phone_1: value });
+                        }
+                      }}
+                    />
+                  </div>
+
+                  <div className="form-field">
+                    <label className="field-label">Τηλέφωνο 2</label>
+                    <input
+                      type="text"
+                      className="form-input"
+                      placeholder="Τηλέφωνο 2"
+                      value={newCustomer.phone_2 || ""}
+                      maxLength={10}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        if (/^\d*$/.test(value)) {
+                          // Επιτρέπει μόνο αριθμούς
+                          setNewCustomer({ ...newCustomer, phone_2: value });
+                        }
+                      }}
+                    />
+                  </div>
+
+                  <div className="form-field">
+                    <label className="field-label">Τηλέφωνο 3</label>
+                    <input
+                      type="text"
+                      className="form-input"
+                      placeholder="Τηλέφωνο 3"
+                      value={newCustomer.phone_3 || ""}
+                      maxLength={10}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        if (/^\d*$/.test(value)) {
+                          // Επιτρέπει μόνο αριθμούς
+                          setNewCustomer({ ...newCustomer, phone_3: value });
+                        }
+                      }}
+                    />
+                  </div>
+
+                  <div className="form-field">
+                    <label className="field-label">Βάρος</label>
+                    <input
+                      type="text"
+                      className="form-input"
+                      placeholder="Βάρος"
+                      value={newCustomer.weight || ""}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        if (/^\d*$/.test(value)) {
+                          // Επιτρέπει μόνο αριθμούς
+                          setNewCustomer({ ...newCustomer, weight: value });
+                        }
+                      }}
+                    />
+                  </div>
+
+                  <div className="form-field wide-field">
+                    <label className="field-label">Πληροφορίες</label>
+                    <textarea
+                      className="form-textarea"
+                      placeholder="Πληροφορίες"
+                      value={newCustomer.info || ""}
+                      onChange={(e) =>
+                        setNewCustomer({ ...newCustomer, info: e.target.value })
+                      }
+                    />
                   </div>
                 </div>
               </div>
-            )}
 
-            {transferType === "Από Σπίτι σε Νοσοκομείο/Σπίτι" && (
-              <div className="form-section home-section">
-                <h3 className="section-title">Στοιχεία Κατοικίας</h3>
-                <div className="form-grid">
-                <div className="form-field">
-  <label className="field-label">Νομός/Δήμος/Πόλη</label>
-  <input
-    type="text"
-    className="form-input"
-    placeholder="Νομός/Δήμος/Πόλη"
-    value={newCustomer.citys || ""}
-    onChange={(e) => {
-      const value = e.target.value;
-      if (/^[Α-Ωα-ωΆ-Ώά-ώA-Za-z\s]*$/.test(value)) { // Επιτρέπει μόνο χαρακτήρες και κενά
-        setNewCustomer({ ...newCustomer, citys: value });
-      }
-    }}
-  />
-</div>
-
-                  <div className="form-field">
-  <label className="field-label">Τ/Κ</label>
-  <input
-    type="text"
-    className="form-input"
-    placeholder="Τ/Κ"
-    value={newCustomer.postal_codes || ""}
-    maxLength={5} 
-    onChange={(e) => {
-      const value = e.target.value;
-      if (/^\d*$/.test(value)) { // Επιτρέπει μόνο αριθμούς
-        setNewCustomer({ ...newCustomer, postal_codes: value });
-      }
-    }}
-  />
-</div>
-
-<div className="form-field">
-  <label className="field-label">Οδός</label>
-  <input
-    type="text"
-    className="form-input"
-    placeholder="Οδός"
-    value={newCustomer.streets || ""}
-    onChange={(e) => {
-      const value = e.target.value;
-      if (/^[Α-Ωα-ωΆ-Ώά-ώA-Za-z\s]*$/.test(value)) { // Επιτρέπει μόνο χαρακτήρες και κενά
-        setNewCustomer({ ...newCustomer, streets: value });
-      }
-    }}
-  />
-</div>
-
-<div className="form-field">
-  <label className="field-label">Αριθμός</label>
-  <input
-    type="text"
-    className="form-input"
-    placeholder="Αριθμός"
-    value={newCustomer.numbers || ""}
-    onChange={(e) => {
-      const value = e.target.value;
-      if (/^\d*$/.test(value)) { // Επιτρέπει μόνο αριθμούς
-        setNewCustomer({ ...newCustomer, numbers: value });
-      }
-    }}
-  />
-</div>
-
-                  <div className="form-field">
-                    <label className="field-label">Όροφος</label>
-                    <select
-                      className="form-select"
-                      value={newCustomer.floors?.toString() || ""}
-                      onChange={(e) =>
-                        setNewCustomer({
-                          ...newCustomer,
-                          floors: Number.parseInt(e.target.value, 10) || null,
-                        })
-                      }
-                    >
-                      <option value="">Επιλέξτε Όροφο</option>
-                      {floorOptions}
-                    </select>
-                  </div>
-
-                  <div className="form-field">
-                    <label className="field-label">Κουδούνι</label>
-                    <input
-                      type="text"
-                      className="form-input"
-                      placeholder="Κουδούνι"
-                      value={newCustomer.doorbells || ""}
-                      onChange={(e) =>
-                        setNewCustomer({
-                          ...newCustomer,
-                          doorbells: e.target.value,
-                        })
-                      }
-                    />
-                  </div>
-
-                  <div className="form-field">
-                    <label className="field-label">Μέσο Μεταφοράς</label>
-                    <select
-    className="form-select"
-    value={newCustomer.transport_methods || ""}
-    onChange={(e) =>
-      setNewCustomer({
-        ...newCustomer,
-        transport_methods: e.target.value,
-      })
-    }
-  >
-    <option value="">Επιλέξτε Μέσο Μεταφοράς</option>
-    <option value="Φορείο">Φορείο</option>
-    <option value="Καρέκλα">Καρέκλα</option>
-    <option value="Scoop">Scoop</option>
-  </select>
-                  </div>
-
-                  <div className="form-field">
-                    <label className="field-label">Ασανσέρ</label>
-                    <select
-                      className="form-select"
-                      value={
-                        newCustomer.has_elevators === true
-                          ? "Ναι"
-                          : newCustomer.has_elevators === false
-                            ? "Όχι"
-                            : ""
-                      }
-                      onChange={(e) => {
-                        const boolValue =
-                          e.target.value === "Ναι"
-                            ? true
-                            : e.target.value === "Όχι"
-                              ? false
-                              : null;
-                        setNewCustomer({
-                          ...newCustomer,
-                          has_elevators: boolValue,
-                        });
-                      }}
-                    >
-                      <option value="">Επιλέξτε</option>
-                      <option value="Ναι">Ναι</option>
-                      <option value="Όχι">Όχι</option>
-                    </select>
-                  </div>
-
-                  <div className="form-field">
-                    <label className="field-label">Χρήση Οξυγόνου</label>
-                    <select
-                      className="form-select"
-                      value={
-                        newCustomer.has_o2s === true
-                          ? "Ναι"
-                          : newCustomer.has_o2s === false
-                            ? "Όχι"
-                            : ""
-                      }
-                      onChange={(e) => {
-                        const boolValue =
-                          e.target.value === "Ναι"
-                            ? true
-                            : e.target.value === "Όχι"
-                              ? false
-                              : null;
-                        setNewCustomer({ ...newCustomer, has_o2s: boolValue });
-                      }}
-                    >
-                      <option value="">Επιλέξτε</option>
-                      <option value="Ναι">Ναι</option>
-                      <option value="Όχι">Όχι</option>
-                    </select>
-                  </div>
-                </div>
+              <div className="form-section">
+                <h3 className="section-title">Είδος Συμβάντος/Αιτιολογία</h3>
+                <select
+                  className="form-select"
+                  value={newCustomer.incident_type || ""}
+                  onChange={(e) =>
+                    setNewCustomer({
+                      ...newCustomer,
+                      incident_type: e.target.value,
+                    })
+                  }
+                >
+                  <option value="">Επιλέξτε</option>
+                  <option value="Επείγον">Επείγον</option>
+                  <option value="Επανεξέταση">Επανεξέταση</option>
+                  <option value="Αιμοκάθαρση/Μετάγγιση">
+                    Αιμοκάθαρση/Μετάγγιση
+                  </option>
+                  <option value="Αξονική/Μαγνητική">Αξονική/Μαγνητική</option>
+                  <option value="Petscan">Petscan</option>
+                  <option value="Εξιτήριο">Εξιτήριο</option>
+                  <option value="Επείγον">Επείγον</option>
+                  <option value="Επιστροφή οίκοι">Επιστροφή οίκοι</option>
+                  <option value="Covid">Covid</option>
+                  <option value="Εισαγωγή">Εισαγωγή</option>
+                </select>
               </div>
-            )}
-    </div>
+            </div>
 
-    <div className="form-section">
-              <h3 className="section-title">Στοιχεία Πελάτη</h3>
-              <div className="form-grid">
-              <div className="form-field">
-  <label className="field-label">Όνομα</label>
-  <input
-    type="text"
-    className="form-input"
-    placeholder="Όνομα"
-    value={newCustomer.first_name || ""}
-    onChange={(e) => {
-      const value = e.target.value.trim();
-      if (/^[Α-Ωα-ωΆ-Ώά-ώA-Za-z\s]*$/.test(value)) { // Επιτρέπει μόνο χαρακτήρες και κενά
-        setNewCustomer({ ...newCustomer, first_name: value });
-      }
-    }}
-  />
-</div>
-
-<div className="form-field">
-  <label className="field-label">Επώνυμο</label>
-  <input
-    type="text"
-    className="form-input"
-    placeholder="Επώνυμο"
-    value={newCustomer.last_name || ""}
-    onChange={(e) => {
-      const value = e.target.value.trim();
-      if (/^[Α-Ωα-ωΆ-Ώά-ώA-Za-z\s]*$/.test(value)) { // Επιτρέπει μόνο χαρακτήρες και κενά
-        setNewCustomer({ ...newCustomer, last_name: value });
-      }
-    }}
-  />
-</div>
-
-                <div className="form-field">
-                  <label className="field-label">Τηλέφωνο 1</label>
+            {/* Δεύτερο τεταρτημόριο (πάνω δεξιά) */}
+            <div className="top-right-section">
+              <div className="cost-container">
+                <div className="cost-box">
+                  <label className="cost-title" htmlFor="additional-cost-input">
+                    Κόστος
+                  </label>
                   <input
-              type="text"
-              className="form-input"
-              placeholder="Τηλέφωνο 1"
-              value={newCustomer.phone_1 || ""}
-              maxLength={10} 
-              onChange={(e) => {
-               const value = e.target.value;
-               if (/^\d*$/.test(value)) { // Επιτρέπει μόνο αριθμούς
-                 setNewCustomer({ ...newCustomer, phone_1: value });
-                }
-  }}
-/>
-                </div>
-
-                <div className="form-field">
-                  <label className="field-label">Τηλέφωνο 2</label>
-                  <input
+                    id="additional-cost-input"
                     type="text"
-                    className="form-input"
-                    placeholder="Τηλέφωνο 2"
-                    value={newCustomer.phone_2 || ""}
-                    maxLength={10} 
-                    onChange={(e) => {
-                      const value = e.target.value;
-                      if (/^\d*$/.test(value)) { // Επιτρέπει μόνο αριθμούς
-                        setNewCustomer({ ...newCustomer, phone_2: value });
-                       }
-         }}
+                    value={additionalCost}
+                    onChange={(e) => setAdditionalCost(Number(e.target.value))}
+                    placeholder="Εισάγετε επιπλέον κόστος"
+                    style={{
+                      marginLeft: "10px",
+                      padding: "5px",
+                      width: "100px",
+                    }}
                   />
                 </div>
-
-                <div className="form-field">
-                  <label className="field-label">Τηλέφωνο 3</label>
-                  <input
-                    type="text"
-                    className="form-input"
-                    placeholder="Τηλέφωνο 3"
-                    value={newCustomer.phone_3 || ""}
-                    maxLength={10} 
-                    onChange={(e) => {
-                      const value = e.target.value;
-                      if (/^\d*$/.test(value)) { // Επιτρέπει μόνο αριθμούς
-                        setNewCustomer({ ...newCustomer, phone_3: value });
-                       }
-         }}
-                  />
-                </div>
-
-          
-<div className="form-field">
-  <label className="field-label">Βάρος</label>
-  <input
-    type="text"
-    className="form-input"
-    placeholder="Βάρος"
-    value={newCustomer.weight || ""}
-    onChange={(e) => {
-      const value = e.target.value;
-      if (/^\d*$/.test(value)) { // Επιτρέπει μόνο αριθμούς
-        setNewCustomer({ ...newCustomer, weight: value });
-      }
-    }}
-  />
-</div>
-
-                <div className="form-field wide-field">
-                  <label className="field-label">Πληροφορίες</label>
-                  <textarea
-                    className="form-textarea"
-                    placeholder="Πληροφορίες"
-                    value={newCustomer.info || ""}
-                    onChange={(e) =>
-                      setNewCustomer({ ...newCustomer, info: e.target.value })
-                    }
-                  />
+                <div className="cost-box">
+                  <h3 className="cost-title">Υπολογισμένο Κόστος</h3>
+                  <div className="cost-value">{calculatedCost} €</div>
                 </div>
               </div>
-           
-    </div>
-
-   
-    <div className="form-section">
-              <h3 className="section-title">Είδος Συμβάντος/Αιτιολογία</h3>
-              <select
-                className="form-select"
-                value={newCustomer.incident_type || ""}
-                onChange={(e) =>
-                  setNewCustomer({
-                    ...newCustomer,
-                    incident_type: e.target.value,
-                  })
-                }
-              >
-                <option value="">Επιλέξτε</option>
-                <option value="Επείγον">Επείγον</option>
-                <option value="Επανεξέταση">Επανεξέταση</option>
-                <option value="Αιμοκάθαρση/Μετάγγιση">Αιμοκάθαρση/Μετάγγιση</option>
-                <option value="Αξονική/Μαγνητική">Αξονική/Μαγνητική</option>
-                <option value="Petscan">Petscan</option>
-                <option value="Εξιτήριο">Εξιτήριο</option>
-                <option value="Επείγον">Επείγον</option>
-                <option value="Επιστροφή οίκοι">Επιστροφή οίκοι</option>
-                <option value="Covid">Covid</option>
-                <option value="Εισαγωγή">Εισαγωγή</option>
-              </select>
             </div>
-  </div>
 
-  {/* Δεύτερο τεταρτημόριο (πάνω δεξιά) */}
-  <div className="top-right-section">
-    <div className="cost-container">
-    <div className="cost-box">
-    <label className="cost-title" htmlFor="additional-cost-input">Κόστος</label>
-    <input
-      id="additional-cost-input"
-      type="text"
-      value={additionalCost}
-      onChange={(e) => setAdditionalCost(Number(e.target.value))}
-      placeholder="Εισάγετε επιπλέον κόστος"
-      style={{ marginLeft: "10px", padding: "5px", width: "100px" }}
-    />
-  </div>
-      <div className="cost-box">
-        <h3 className="cost-title">Υπολογισμένο Κόστος</h3>
-        <div className="cost-value">{calculatedCost} €</div>
-      </div>
-     
-    </div>
-  </div>
-
-  {/* Τρίτο τεταρτημόριο (κάτω δεξιά) */}
-  <div className="bottom-right-section">
-  <div className="form-section">
-              <h3 className="section-title">Επιλογή Προορισμού</h3>
-              <div className="radio-group">
-                <label className="radio-label">
-                  <input
-                    type="radio"
-                    className="radio-input"
-                    value="Νοσοκομείο"
-                    checked={newCustomer.location_type === "Νοσοκομείο"}
-                    onChange={(e) =>
-                      setNewCustomer({
-                        ...newCustomer,
-                        location_type: e.target.value,
-                      })
-                    }
-                  />
-                  Νοσοκομείο
-                </label>
-                <label className="radio-label">
-                  <input
-                    type="radio"
-                    className="radio-input"
-                    value="Σπίτι"
-                    checked={newCustomer.location_type === "Σπίτι"}
-                    onChange={(e) =>
-                      setNewCustomer({
-                        ...newCustomer,
-                        location_type: e.target.value,
-                      })
-                    }
-                  />
-                  Σπίτι
-                </label>
-              </div>
-              {newCustomer.location_type === "Νοσοκομείο" && (
-              <div className="form-section hospital-section">
-                <h3 className="section-title">Στοιχεία Νοσοκομείου</h3>
-                <div className="form-grid">
-                  <div className="form-field">
-                  <HospitalDropdown newCustomer={newCustomer} setNewCustomer={setNewCustomer} />
-                  </div>
-
-                  <div className="form-field">
-                    
-                    <ClinicDropdown newCustomer={newCustomer} setNewCustomer={setNewCustomer} />
-                  </div>
-
-                  <div className="form-field">
-                    <label className="field-label">Κτήριο</label>
+            {/* Τρίτο τεταρτημόριο (κάτω δεξιά) */}
+            <div className="bottom-right-section">
+              <div className="form-section">
+                <h3 className="section-title">Επιλογή Προορισμού</h3>
+                <div className="radio-group">
+                  <label className="radio-label">
                     <input
-                      type="text"
-                      className="form-input"
-                      placeholder="Κτήριο"
-                      value={newCustomer.building_name || ""}
+                      type="radio"
+                      className="radio-input"
+                      value="Νοσοκομείο"
+                      checked={newCustomer.location_type === "Νοσοκομείο"}
                       onChange={(e) =>
                         setNewCustomer({
                           ...newCustomer,
-                          building_name: e.target.value,
+                          location_type: e.target.value,
                         })
                       }
                     />
-                  </div>
-
-                  <div className="form-field">
-                    <label className="field-label">Όροφος</label>
-                    <select
-                      className="form-select"
-                      value={newCustomer.floor_number || ""}
-                      onChange={(e) =>
-                        setNewCustomer({
-                          ...newCustomer,
-                          floor_number: e.target.value,
-                        })
-                      }
-                    >
-                      <option value="">Επιλέξτε Όροφο</option>
-                      {floorOptions}
-                    </select>
-                  </div>
-
-                  <div className="form-field">
-                    <label className="field-label">Δωμάτιο</label>
+                    Νοσοκομείο
+                  </label>
+                  <label className="radio-label">
                     <input
-                      type="text"
-                      className="form-input"
-                      placeholder="Δωμάτιο"
-                      value={newCustomer.room_number || ""}
+                      type="radio"
+                      className="radio-input"
+                      value="Σπίτι"
+                      checked={newCustomer.location_type === "Σπίτι"}
                       onChange={(e) =>
                         setNewCustomer({
                           ...newCustomer,
-                          room_number: e.target.value,
+                          location_type: e.target.value,
                         })
                       }
                     />
-                  </div>
-
-                  <div className="form-field">
-                    <label className="field-label">Χρήση Οξυγόνου</label>
-                    <select
-                      className="form-select"
-                      value={
-                        newCustomer.oxygen_usage === true
-                          ? "Ναι"
-                          : newCustomer.oxygen_usage === false
-                            ? "Όχι"
-                            : ""
-                      }
-                      onChange={(e) => {
-                        const boolValue =
-                          e.target.value === "Ναι"
-                            ? true
-                            : e.target.value === "Όχι"
-                              ? false
-                              : null;
-                        setNewCustomer({
-                          ...newCustomer,
-                          oxygen_usage: boolValue,
-                        });
-                      }}
-                    >
-                      <option value="">Επιλέξτε</option>
-                      <option value="Ναι">Ναι</option>
-                      <option value="Όχι">Όχι</option>
-                    </select>
-                  </div>
-
-                  <div className="form-field">
-                    <label className="field-label">Μέσο Μεταφοράς</label>
-                    <select
-    className="form-select"
-    value={newCustomer.transport_method || ""}
-    onChange={(e) =>
-      setNewCustomer({
-        ...newCustomer,
-        transport_method: e.target.value,
-      })
-    }
-  >
-    <option value="">Επιλέξτε Μέσο Μεταφοράς</option>
-    <option value="Φορείο">Φορείο</option>
-    <option value="Καρέκλα">Καρέκλα</option>
-    <option value="Scoop">Scoop</option>
-  </select>
-                  </div>
+                    Σπίτι
+                  </label>
                 </div>
+                {newCustomer.location_type === "Νοσοκομείο" && (
+                  <div className="form-section hospital-section">
+                    <h3 className="section-title">Στοιχεία Νοσοκομείου</h3>
+                    <div className="form-grid">
+                      <div className="form-field">
+                        <HospitalDropdown
+                          newCustomer={newCustomer}
+                          setNewCustomer={setNewCustomer}
+                        />
+                      </div>
+
+                      <div className="form-field">
+                        <ClinicDropdown
+                          newCustomer={newCustomer}
+                          setNewCustomer={setNewCustomer}
+                        />
+                      </div>
+
+                      <div className="form-field">
+                        <label className="field-label">Κτήριο</label>
+                        <input
+                          type="text"
+                          className="form-input"
+                          placeholder="Κτήριο"
+                          value={newCustomer.building_name || ""}
+                          onChange={(e) =>
+                            setNewCustomer({
+                              ...newCustomer,
+                              building_name: e.target.value,
+                            })
+                          }
+                        />
+                      </div>
+
+                      <div className="form-field">
+                        <label className="field-label">Όροφος</label>
+                        <select
+                          className="form-select"
+                          value={newCustomer.floor_number || ""}
+                          onChange={(e) =>
+                            setNewCustomer({
+                              ...newCustomer,
+                              floor_number: e.target.value,
+                            })
+                          }
+                        >
+                          <option value="">Επιλέξτε Όροφο</option>
+                          {floorOptions}
+                        </select>
+                      </div>
+
+                      <div className="form-field">
+                        <label className="field-label">Δωμάτιο</label>
+                        <input
+                          type="text"
+                          className="form-input"
+                          placeholder="Δωμάτιο"
+                          value={newCustomer.room_number || ""}
+                          onChange={(e) =>
+                            setNewCustomer({
+                              ...newCustomer,
+                              room_number: e.target.value,
+                            })
+                          }
+                        />
+                      </div>
+
+                      <div className="form-field">
+                        <label className="field-label">Χρήση Οξυγόνου</label>
+                        <select
+                          className="form-select"
+                          value={
+                            newCustomer.oxygen_usage === true
+                              ? "Ναι"
+                              : newCustomer.oxygen_usage === false
+                                ? "Όχι"
+                                : ""
+                          }
+                          onChange={(e) => {
+                            const boolValue =
+                              e.target.value === "Ναι"
+                                ? true
+                                : e.target.value === "Όχι"
+                                  ? false
+                                  : null;
+                            setNewCustomer({
+                              ...newCustomer,
+                              oxygen_usage: boolValue,
+                            });
+                          }}
+                        >
+                          <option value="">Επιλέξτε</option>
+                          <option value="Ναι">Ναι</option>
+                          <option value="Όχι">Όχι</option>
+                        </select>
+                      </div>
+
+                      <div className="form-field">
+                        <label className="field-label">Μέσο Μεταφοράς</label>
+                        <select
+                          className="form-select"
+                          value={newCustomer.transport_method || ""}
+                          onChange={(e) =>
+                            setNewCustomer({
+                              ...newCustomer,
+                              transport_method: e.target.value,
+                            })
+                          }
+                        >
+                          <option value="">Επιλέξτε Μέσο Μεταφοράς</option>
+                          <option value="Φορείο">Φορείο</option>
+                          <option value="Καρέκλα">Καρέκλα</option>
+                          <option value="Scoop">Scoop</option>
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+                )}
+                {newCustomer.location_type === "Σπίτι" && (
+                  <div className="form-section home-section">
+                    <h3 className="section-title">Στοιχεία Σπιτιού</h3>
+                    <div className="form-grid">
+                      <div className="form-field">
+                        <label className="field-label">Νομός/Δήμος/Πόλη</label>
+                        <input
+                          type="text"
+                          className="form-input"
+                          placeholder="Νομός/Δήμος/Πόλη"
+                          value={newCustomer.cityd || ""}
+                          onChange={(e) => {
+                            const value = e.target.value;
+                            if (/^[Α-Ωα-ωΆ-Ώά-ώA-Za-z\s]*$/.test(value)) {
+                              // Επιτρέπει μόνο χαρακτήρες και κενά
+                              setNewCustomer({ ...newCustomer, cityd: value });
+                            }
+                          }}
+                        />
+                      </div>
+
+                      <div className="form-field">
+                        <label className="field-label">Τ/Κ</label>
+                        <input
+                          type="text"
+                          className="form-input"
+                          placeholder="Τ/Κ"
+                          value={newCustomer.postal_coded || ""}
+                          maxLength={5}
+                          onChange={(e) => {
+                            const value = e.target.value;
+                            if (/^\d*$/.test(value)) {
+                              // Επιτρέπει μόνο αριθμούς
+                              setNewCustomer({
+                                ...newCustomer,
+                                postal_coded: value,
+                              });
+                            }
+                          }}
+                        />
+                      </div>
+
+                      <div className="form-field">
+                        <label className="field-label">Οδός</label>
+                        <input
+                          type="text"
+                          className="form-input"
+                          placeholder="Οδός"
+                          value={newCustomer.streetd || ""}
+                          onChange={(e) => {
+                            const value = e.target.value;
+                            if (/^[Α-Ωα-ωΆ-Ώά-ώA-Za-z\s]*$/.test(value)) {
+                              // Επιτρέπει μόνο χαρακτήρες και κενά
+                              setNewCustomer({
+                                ...newCustomer,
+                                streetd: value,
+                              });
+                            }
+                          }}
+                        />
+                      </div>
+
+                      <div className="form-field">
+                        <label className="field-label">Αριθμός</label>
+                        <input
+                          type="text"
+                          className="form-input"
+                          placeholder="Αριθμός"
+                          value={newCustomer.numberd || ""}
+                          onChange={(e) => {
+                            const value = e.target.value;
+                            if (/^\d*$/.test(value)) {
+                              // Επιτρέπει μόνο αριθμούς
+                              setNewCustomer({
+                                ...newCustomer,
+                                numberd: value,
+                              });
+                            }
+                          }}
+                        />
+                      </div>
+
+                      <div className="form-field">
+                        <label className="field-label">Όροφος</label>
+                        <select
+                          className="form-select"
+                          value={newCustomer.floord?.toString() || ""}
+                          onChange={(e) =>
+                            setNewCustomer({
+                              ...newCustomer,
+                              floord:
+                                Number.parseInt(e.target.value, 10) || null,
+                            })
+                          }
+                        >
+                          <option value="">Επιλέξτε Όροφο</option>
+                          {floorOptions}
+                        </select>
+                      </div>
+
+                      <div className="form-field">
+                        <label className="field-label">Κουδούνι</label>
+                        <input
+                          type="text"
+                          className="form-input"
+                          placeholder="Κουδούνι"
+                          value={newCustomer.doorbelld || ""}
+                          onChange={(e) =>
+                            setNewCustomer({
+                              ...newCustomer,
+                              doorbelld: e.target.value,
+                            })
+                          }
+                        />
+                      </div>
+
+                      <div className="form-field">
+                        <label className="field-label">Μέσο Μεταφοράς</label>
+                        <select
+                          className="form-select"
+                          value={newCustomer.transport_methodd || ""}
+                          onChange={(e) =>
+                            setNewCustomer({
+                              ...newCustomer,
+                              transport_methodd: e.target.value,
+                            })
+                          }
+                        >
+                          <option value="">Επιλέξτε Μέσο Μεταφοράς</option>
+                          <option value="Φορείο">Φορείο</option>
+                          <option value="Καρέκλα">Καρέκλα</option>
+                          <option value="Scoop">Scoop</option>
+                        </select>
+                      </div>
+
+                      <div className="form-field">
+                        <label className="field-label">Ασανσέρ</label>
+                        <select
+                          className="form-select"
+                          value={
+                            newCustomer.has_elevatord === true
+                              ? "Ναι"
+                              : newCustomer.has_elevatord === false
+                                ? "Όχι"
+                                : ""
+                          }
+                          onChange={(e) => {
+                            const boolValue =
+                              e.target.value === "Ναι"
+                                ? true
+                                : e.target.value === "Όχι"
+                                  ? false
+                                  : null;
+                            setNewCustomer({
+                              ...newCustomer,
+                              has_elevatord: boolValue,
+                            });
+                          }}
+                        >
+                          <option value="">Επιλέξτε</option>
+                          <option value="Ναι">Ναι</option>
+                          <option value="Όχι">Όχι</option>
+                        </select>
+                      </div>
+
+                      <div className="form-field">
+                        <label className="field-label">Χρήση Οξυγόνου</label>
+                        <select
+                          className="form-select"
+                          value={
+                            newCustomer.has_o2d === true
+                              ? "Ναι"
+                              : newCustomer.has_o2d === false
+                                ? "Όχι"
+                                : ""
+                          }
+                          onChange={(e) => {
+                            const boolValue =
+                              e.target.value === "Ναι"
+                                ? true
+                                : e.target.value === "Όχι"
+                                  ? false
+                                  : null;
+                            setNewCustomer({
+                              ...newCustomer,
+                              has_o2d: boolValue,
+                            });
+                          }}
+                        >
+                          <option value="">Επιλέξτε</option>
+                          <option value="Ναι">Ναι</option>
+                          <option value="Όχι">Όχι</option>
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
-            )}
-            {newCustomer.location_type === "Σπίτι" && (
-              <div className="form-section home-section">
-                <h3 className="section-title">Στοιχεία Σπιτιού</h3>
-                <div className="form-grid">
-                <div className="form-field">
-  <label className="field-label">Νομός/Δήμος/Πόλη</label>
-  <input
-    type="text"
-    className="form-input"
-    placeholder="Νομός/Δήμος/Πόλη"
-    value={newCustomer.cityd || ""}
-    onChange={(e) => {
-      const value = e.target.value;
-      if (/^[Α-Ωα-ωΆ-Ώά-ώA-Za-z\s]*$/.test(value)) { // Επιτρέπει μόνο χαρακτήρες και κενά
-        setNewCustomer({ ...newCustomer, cityd: value });
-      }
-    }}
-  />
-</div>
-
-                  <div className="form-field">
-  <label className="field-label">Τ/Κ</label>
-  <input
-    type="text"
-    className="form-input"
-    placeholder="Τ/Κ"
-    value={newCustomer.postal_coded || ""}
-    maxLength={5} 
-    onChange={(e) => {
-      const value = e.target.value;
-      if (/^\d*$/.test(value)) { // Επιτρέπει μόνο αριθμούς
-        setNewCustomer({ ...newCustomer, postal_coded: value });
-      }
-    }}
-  />
-</div>
-
-<div className="form-field">
-  <label className="field-label">Οδός</label>
-  <input
-    type="text"
-    className="form-input"
-    placeholder="Οδός"
-    value={newCustomer.streetd || ""}
-    onChange={(e) => {
-      const value = e.target.value;
-      if (/^[Α-Ωα-ωΆ-Ώά-ώA-Za-z\s]*$/.test(value)) { // Επιτρέπει μόνο χαρακτήρες και κενά
-        setNewCustomer({ ...newCustomer, streetd: value });
-      }
-    }}
-  />
-</div>
-
-<div className="form-field">
-  <label className="field-label">Αριθμός</label>
-  <input
-    type="text"
-    className="form-input"
-    placeholder="Αριθμός"
-    value={newCustomer.numberd || ""}
-    onChange={(e) => {
-      const value = e.target.value;
-      if (/^\d*$/.test(value)) { // Επιτρέπει μόνο αριθμούς
-        setNewCustomer({ ...newCustomer, numberd: value });
-      }
-    }}
-  />
-</div>
-
-                  <div className="form-field">
-                    <label className="field-label">Όροφος</label>
-                    <select
-                      className="form-select"
-                      value={newCustomer.floord?.toString() || ""}
-                      onChange={(e) =>
-                        setNewCustomer({
-                          ...newCustomer,
-                          floord: Number.parseInt(e.target.value, 10) || null,
-                        })
-                      }
-                    >
-                      <option value="">Επιλέξτε Όροφο</option>
-                      {floorOptions}
-                    </select>
-                  </div>
-
-                  <div className="form-field">
-                    <label className="field-label">Κουδούνι</label>
-                    <input
-                      type="text"
-                      className="form-input"
-                      placeholder="Κουδούνι"
-                      value={newCustomer.doorbelld || ""}
-                      onChange={(e) =>
-                        setNewCustomer({
-                          ...newCustomer,
-                          doorbelld: e.target.value,
-                        })
-                      }
-                    />
-                  </div>
-
-                  <div className="form-field">
-                    <label className="field-label">Μέσο Μεταφοράς</label>
-                    <select
-    className="form-select"
-    value={newCustomer.transport_methodd || ""}
-    onChange={(e) =>
-      setNewCustomer({
-        ...newCustomer,
-        transport_methodd: e.target.value,
-      })
-    }
-  >
-    <option value="">Επιλέξτε Μέσο Μεταφοράς</option>
-    <option value="Φορείο">Φορείο</option>
-    <option value="Καρέκλα">Καρέκλα</option>
-    <option value="Scoop">Scoop</option>
-  </select>
-                  </div>
-
-                  <div className="form-field">
-                    <label className="field-label">Ασανσέρ</label>
-                    <select
-                      className="form-select"
-                      value={
-                        newCustomer.has_elevatord === true
-                          ? "Ναι"
-                          : newCustomer.has_elevatord === false
-                            ? "Όχι"
-                            : ""
-                      }
-                      onChange={(e) => {
-                        const boolValue =
-                          e.target.value === "Ναι"
-                            ? true
-                            : e.target.value === "Όχι"
-                              ? false
-                              : null;
-                        setNewCustomer({
-                          ...newCustomer,
-                          has_elevatord: boolValue,
-                        });
-                      }}
-                    >
-                      <option value="">Επιλέξτε</option>
-                      <option value="Ναι">Ναι</option>
-                      <option value="Όχι">Όχι</option>
-                    </select>
-                  </div>
-
-                  <div className="form-field">
-                    <label className="field-label">Χρήση Οξυγόνου</label>
-                    <select
-                      className="form-select"
-                      value={
-                        newCustomer.has_o2d === true
-                          ? "Ναι"
-                          : newCustomer.has_o2d === false
-                            ? "Όχι"
-                            : ""
-                      }
-                      onChange={(e) => {
-                        const boolValue =
-                          e.target.value === "Ναι"
-                            ? true
-                            : e.target.value === "Όχι"
-                              ? false
-                              : null;
-                        setNewCustomer({ ...newCustomer, has_o2d: boolValue });
-                      }}
-                    >
-                      <option value="">Επιλέξτε</option>
-                      <option value="Ναι">Ναι</option>
-                      <option value="Όχι">Όχι</option>
-                    </select>
-                  </div>
-                </div>
-              </div>
-            )}
             </div>
-  </div>
 
-  <button type="submit" className="submit-button">
+            <button type="submit" className="submit-button">
               Αποθήκευση Δεδομένων
             </button>
-</form>
-      
-         
+          </form>
         </div>
       </div>
       {savedCustomer && (
@@ -1420,7 +1490,9 @@ function CustomerForm({
                         <input
                           type="text"
                           value={editedValue}
-                          onChange={(e) => setEditedValue(e.target.value.trim())}
+                          onChange={(e) =>
+                            setEditedValue(e.target.value.trim())
+                          }
                           style={{ padding: "5px", width: "150px" }}
                         />
                       </form>
@@ -1491,7 +1563,6 @@ function CustomerForm({
       )}
     </div>
   );
-  
 }
 
 export default CustomerForm;
